@@ -21,9 +21,9 @@ class AuthSessions(Base):
     user_agent: Mapped[str] = mapped_column(String, nullable=False)
     ip_address: Mapped[str] = mapped_column(String, nullable=False)
     device_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    device_type: Mapped[str] = mapped_column(String, nullable=False)
+    device_type: Mapped[str] = mapped_column(String, nullable=True)
     device_os: Mapped[str] = mapped_column(String, nullable=False)
-    refresh_token_hash: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    refresh_token_jti: Mapped[str] = mapped_column(String, nullable=False, index=True)
     is_revoked: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, index=True
     )

@@ -22,4 +22,8 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: str
 
 
+    SECURE_COOKIES: bool
+    
+
+
 CONFIG = Settings()
