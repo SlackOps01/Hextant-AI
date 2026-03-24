@@ -36,7 +36,12 @@ class Artifact(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     url: Mapped[str] = mapped_column(String, nullable=False)
     type: Mapped[ArtifactType] = mapped_column(
-        Enum(enum=ArtifactType, name="artifact_type_enum", create_constraint=False),
+        Enum(
+            ArtifactType,
+            name="artifact_type_enum",
+            create_constraint=False,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         nullable=False,
     )
     artifact_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

@@ -28,7 +28,12 @@ class Memories(Base):
     )
     content: Mapped[str] = mapped_column(String, nullable=False)
     category: Mapped[MemoryCategory] = mapped_column(
-        Enum(enum=MemoryCategory, name="memory_category_enum", create_constraint=False),
+        Enum(
+            MemoryCategory,
+            name="memory_category_enum",
+            create_constraint=False,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         nullable=False,
         default=MemoryCategory.OTHER,
     )

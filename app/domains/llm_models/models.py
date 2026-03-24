@@ -25,11 +25,21 @@ class LanguageModels(Base):
     )
     display_name: Mapped[str] = mapped_column(String, nullable=False)
     model_type: Mapped[ModelType] = mapped_column(
-        Enum(enum=ModelType, name="model_type_enum", create_constraint=False),
+        Enum(
+            ModelType,
+            name="model_type_enum",
+            create_constraint=False,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         nullable=False,
     )
     modality: Mapped[ModelModality] = mapped_column(
-        Enum(enum=ModelModality, name="model_modality_enum", create_constraint=False),
+        Enum(
+            ModelModality,
+            name="model_modality_enum",
+            create_constraint=False,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         nullable=False,
     )
     context_length: Mapped[int] = mapped_column(Integer, nullable=False)

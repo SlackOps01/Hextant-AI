@@ -37,7 +37,12 @@ class Orders(Base):
     )
     paystack_reference: Mapped[str | None] = mapped_column(String, nullable=True)
     status: Mapped[OrderStatus] = mapped_column(
-        Enum(enum=OrderStatus, name="order_status_enum", create_constraint=False),
+        Enum(
+            OrderStatus,
+            name="order_status_enum",
+            create_constraint=False,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         nullable=False,
         default=OrderStatus.PENDING,
     )

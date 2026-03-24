@@ -23,7 +23,12 @@ class Coupons(Base):
     )
     code: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     type: Mapped[CouponType] = mapped_column(
-        Enum(enum=CouponType, name="coupon_type_enum", create_constraint=False),
+        Enum(
+            CouponType,
+            name="coupon_type_enum",
+            create_constraint=False,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         nullable=False,
     )
     value: Mapped[int] = mapped_column(Integer, nullable=False)

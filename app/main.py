@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from redis.asyncio import Redis
 from httpx import AsyncClient
 from app.domains import *  # noqa: F401, F403
+from app.utils.create_admin import create_admin_user
 
 
 @asynccontextmanager
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
     try:
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables initialized")
+        create_admin_user()
         redis_status = await redis_client.ping()
         logger.info(f"Redis connection status: {redis_status}")
     except Exception as e:

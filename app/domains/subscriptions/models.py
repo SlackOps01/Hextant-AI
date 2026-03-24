@@ -37,9 +37,10 @@ class Subscriptions(Base):
     )
     status: Mapped[SubscriptionStatus] = mapped_column(
         Enum(
-            enum=SubscriptionStatus,
+            SubscriptionStatus,
             name="subscription_status_enum",
             create_constraint=False,
+            values_callable=lambda obj: [e.value for e in obj],
         ),
         nullable=False,
     )

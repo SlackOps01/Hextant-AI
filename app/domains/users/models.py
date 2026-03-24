@@ -17,7 +17,12 @@ class User(Base):
     email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String, nullable=False)
     role: Mapped[Role] = mapped_column(
-        Enum(enum=Role, name="role_enum", create_constraint=False),
+        Enum(
+            Role,
+            name="role_enum",
+            create_constraint=False,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         nullable=False,
         default=Role.USER,
     )

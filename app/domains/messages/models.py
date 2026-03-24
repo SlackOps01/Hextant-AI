@@ -32,12 +32,22 @@ class Messages(Base):
         ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True
     )
     role: Mapped[MessageRole] = mapped_column(
-        Enum(enum=MessageRole, name="message_role_enum", create_constraint=False),
+        Enum(
+            MessageRole,
+            name="message_role_enum",
+            create_constraint=False,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         nullable=False,
     )
     content: Mapped[str] = mapped_column(String, nullable=False)
     message_type: Mapped[MessageType] = mapped_column(
-        Enum(enum=MessageType, name="message_type_enum", create_constraint=False),
+        Enum(
+            MessageType,
+            name="message_type_enum",
+            create_constraint=False,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         nullable=False,
         default=MessageType.TEXT,
     )

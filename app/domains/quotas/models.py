@@ -27,7 +27,12 @@ class Quotas(Base):
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     resource_type: Mapped[ResourceType] = mapped_column(
-        Enum(enum=ResourceType, name="resource_type_enum", create_constraint=False),
+        Enum(
+            ResourceType,
+            name="resource_type_enum",
+            create_constraint=False,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         nullable=False,
     )
     current_usage: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
