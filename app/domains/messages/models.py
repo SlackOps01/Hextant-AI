@@ -63,3 +63,7 @@ class Messages(Base):
     artifacts: Mapped[list["Artifact"]] = relationship(
         "Artifact", back_populates="message", cascade="all, delete-orphan"
     )
+
+
+from app.domains.memories.models import Memories
+from app.domains.artifacts.models import Artifact

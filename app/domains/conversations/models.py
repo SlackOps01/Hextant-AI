@@ -32,3 +32,6 @@ class Conversations(Base):
     messages: Mapped[list["Messages"]] = relationship(
         "Messages", back_populates="conversation", cascade="all, delete-orphan"
     )
+
+
+from app.domains.messages.models import Messages

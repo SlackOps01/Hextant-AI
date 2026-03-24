@@ -50,3 +50,11 @@ class User(Base):
     quotas: Mapped[List["Quotas"]] = relationship(
         "Quotas", back_populates="user", cascade="all, delete-orphan"
     )
+
+
+from app.domains.auth.models import AuthSessions
+from app.domains.conversations.models import Conversations
+from app.domains.artifacts.models import Artifact
+from app.domains.subscriptions.models import Subscriptions
+from app.domains.orders.models import Orders
+from app.domains.quotas.models import Quotas
