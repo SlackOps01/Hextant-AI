@@ -1,7 +1,7 @@
 from app.core.database import Base
 from uuid import uuid7
 from datetime import datetime, timezone
-from sqlalchemy import Column, ForeignKey, Enum, DateTime, String, Integer
+from sqlalchemy import Column, ForeignKey, Enum as SQLEnum, DateTime, String, Integer
 from sqlalchemy.orm import relationship
 from enum import Enum
 
@@ -19,7 +19,7 @@ class Orders(Base):
     amount = Column(Integer, nullable=False)
     coupon_id = Column(String, ForeignKey("coupons.id"), nullable=True)
     paystack_reference = Column(String, nullable=True)
-    status = Column(Enum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
+    status = Column(SQLEnum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
     created_at = Column(DateTime, nullable=False, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, nullable=False, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 

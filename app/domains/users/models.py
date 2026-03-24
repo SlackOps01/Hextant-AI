@@ -2,7 +2,6 @@ from app.core.database import Base
 from uuid import uuid7
 from datetime import datetime, timezone
 from sqlalchemy import Column, ForeignKey, Enum, DateTime, String
-
 from sqlalchemy.orm import relationship
 from app.shared.enums import Role
 

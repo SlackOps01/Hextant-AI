@@ -1,7 +1,7 @@
 from app.core.database import Base
 from uuid import uuid7
 from datetime import datetime, timezone
-from sqlalchemy import Column, ForeignKey, Enum, DateTime, String, Integer
+from sqlalchemy import Column, ForeignKey, Enum as SQLEnum, DateTime, String, Integer
 from sqlalchemy.orm import relationship
 from enum import Enum
 
@@ -24,7 +24,7 @@ class LanguageModels(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid7()))
     display_name = Column(String, nullable=False)
     model_type = Column(Enum(ModelType), nullable=False)
-    modality = Column(Enum(ModelModality), nullable=False)
+    modality = Column(SQLEnum(ModelModality), nullable=False)
     context_length = Column(Integer, nullable=False)
     provider = Column(String, nullable=True)
     input_token_price = Column(Integer, nullable=True)
