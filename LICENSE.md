@@ -4,8 +4,8 @@
 
 | Parameter | Value |
 |-----------|-------|
-| **Licensor** | Hextant AI |
-| **Licensed Work** | Hextant AI |
+| **Licensor** | Hextant Labs |
+| **Licensed Work** | Hextant Labs Backend |
 | **Change Date** | 4 years from the date of initial publication |
 | **Change License** | Apache License, Version 2.0 |
 
@@ -82,7 +82,7 @@ Apache License
 Version 2.0, January 2004
 http://www.apache.org/licenses/LICENSE-2.0
 
-Copyright [Year] Hextant AI
+Copyright [Year] Hextant Labs
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
