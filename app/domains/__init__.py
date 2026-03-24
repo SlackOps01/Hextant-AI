@@ -25,3 +25,5 @@ __all__ = [
     "Orders",
     "Quotas",
 ]
+
+from app.domains.users.routes import router as user_router

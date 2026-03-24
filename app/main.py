@@ -10,6 +10,7 @@ from app.domains import *  # noqa: F401, F403
 from app.utils.create_admin import create_admin_user
 from app.core.limiter import limiter
 from slowapi.errors import RateLimitExceeded
+from app.domains import user_router
 
 
 def custom_rate_limit_exceeded_handler(request: Request, exc: Exception):
@@ -46,6 +47,9 @@ app = FastAPI(lifespan=lifespan)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, custom_rate_limit_exceeded_handler)
+
+# Routes
+app.include_router(user_router)
 
 
 
