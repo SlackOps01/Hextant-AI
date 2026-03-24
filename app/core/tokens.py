@@ -7,7 +7,7 @@ async def revoke_tokens(redis: Redis, jti: str, exp: int):
     await redis.set(
         f"{REVOKED_TOKEN_PREFIX}:{jti}",
         "1",
-        ex=exp,
+        exat=exp
     )
 
 async def is_token_revoked(redis: Redis, jti: str) -> bool:

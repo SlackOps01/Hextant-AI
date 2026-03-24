@@ -25,7 +25,7 @@ def custom_rate_limit_exceeded_handler(request: Request, exc: Exception):
 async def lifespan(app: FastAPI):
     redis_client = Redis(host=CONFIG.REDIS_HOST, port=CONFIG.REDIS_PORT, db=0)
     http_client = AsyncClient()
-    app.state.redis = redis_client
+    app.state.redis_client = redis_client
     app.state.http_client = http_client
     try:
         Base.metadata.create_all(bind=engine)

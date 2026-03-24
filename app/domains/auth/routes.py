@@ -1,3 +1,4 @@
+from redis.asyncio import Redis
 from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.orm import Session
 from app.core.oauth2 import TokenData
@@ -22,5 +23,23 @@ def login(
 
     return AuthService.login(request, response, db, form_data)
 
+@router.post("/logout")
+@limiter.limit("1/second")
+async def logout(
+    request: Request,
+    response: Response,
+    redis: Redis = Depends(get_redis),
+    db: Session = Depends(get_db)
+):
+    return await AuthService.logout(request, response, db, redis)
 
+    
 
+@router.post("/refresh")
+async def refresh(
+    request: Request,
+    response: Response,
+    redis: Redis = Depends(get_redis),
+    db: Session = Depends(get_db)
+):
+    return await AuthService.refresh(request, response, db, redis)
