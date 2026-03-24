@@ -1,26 +1,59 @@
 from app.core.database import Base
 from uuid import uuid7
 from datetime import datetime, timezone
-from sqlalchemy import Column, ForeignKey, Enum as SQLEnum, DateTime, String, Integer
-from sqlalchemy.orm import relationship
-from enum import Enum
+from enum import Enum as PyEnum
+from sqlalchemy import String, ForeignKey, DateTime, Integer, Enum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
 
-class OrderStatus(str, Enum):
-    COMPLETED="completed"
-    PENDING="pending"
-    FAILED="failed"
+if TYPE_CHECKING:
+    from app.domains.users.models import User
+    from app.domains.tiers.models import Tiers
+    from app.domains.coupons.models import Coupons
+    from app.domains.subscriptions.models import Subscriptions
 
+
+class OrderStatus(str, PyEnum):
+    COMPLETED = "completed"
+    PENDING = "pending"
+    FAILED = "failed"
 
 
 class Orders(Base):
-    id = Column(String, primary_key=True, default=lambda: str(uuid7()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
-    tier_id = Column(String, ForeignKey("tiers.id"), nullable=False)
-    amount = Column(Integer, nullable=False)
-    coupon_id = Column(String, ForeignKey("coupons.id"), nullable=True)
-    paystack_reference = Column(String, nullable=True)
-    status = Column(SQLEnum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
-    created_at = Column(DateTime, nullable=False, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, nullable=False, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    __tablename__ = "orders"
 
-    
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid7())
+    )
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    tier_id: Mapped[str] = mapped_column(
+        ForeignKey("tiers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    coupon_id: Mapped[str | None] = mapped_column(
+        ForeignKey("coupons.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    paystack_reference: Mapped[str | None] = mapped_column(String, nullable=True)
+    status: Mapped[OrderStatus] = mapped_column(
+        Enum(enum=OrderStatus, name="order_status_enum", create_constraint=False),
+        nullable=False,
+        default=OrderStatus.PENDING,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    user: Mapped["User"] = relationship("User", back_populates="orders")
+    tier: Mapped["Tiers"] = relationship("Tiers", back_populates="orders")
+    coupon: Mapped["Coupons | None"] = relationship("Coupons", back_populates="orders")
+    subscriptions: Mapped[list["Subscriptions"]] = relationship(
+        "Subscriptions", back_populates="order"
+    )

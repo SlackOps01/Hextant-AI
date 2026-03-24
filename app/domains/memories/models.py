@@ -1,11 +1,16 @@
 from app.core.database import Base
 from uuid import uuid7
 from datetime import datetime, timezone
-from sqlalchemy import Column, ForeignKey, Enum as SQLEnum, DateTime, String
-from sqlalchemy.orm import relationship
-from enum import Enum
+from enum import Enum as PyEnum
+from sqlalchemy import String, ForeignKey, DateTime, Enum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
 
-class MemoryCategory(str, Enum):
+if TYPE_CHECKING:
+    from app.domains.messages.models import Messages
+
+
+class MemoryCategory(str, PyEnum):
     FACT = "fact"
     PREFERENCE = "preference"
     EXPERIENCE = "experience"
@@ -15,9 +20,28 @@ class MemoryCategory(str, Enum):
 class Memories(Base):
     __tablename__ = "memories"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid7()))
-    source_message_id = Column(String, ForeignKey("messages.id"), nullable=False)
-    content = Column(String, nullable=False)
-    category = Column(SQLEnum(MemoryCategory), nullable=False, default=MemoryCategory.OTHER)
-    created_at = Column(DateTime, nullable=False, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, nullable=False, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid7())
+    )
+    source_message_id: Mapped[str] = mapped_column(
+        ForeignKey("messages.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    content: Mapped[str] = mapped_column(String, nullable=False)
+    category: Mapped[MemoryCategory] = mapped_column(
+        Enum(enum=MemoryCategory, name="memory_category_enum", create_constraint=False),
+        nullable=False,
+        default=MemoryCategory.OTHER,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    source_message: Mapped["Messages"] = relationship(
+        "Messages", back_populates="memories"
+    )

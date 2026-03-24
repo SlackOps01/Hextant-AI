@@ -1,11 +1,18 @@
 from app.core.database import Base
 from uuid import uuid7
 from datetime import datetime, timezone
-from sqlalchemy import Column, ForeignKey, Enum as SQLEnum, DateTime, String, Integer
+from enum import Enum as PyEnum
+from sqlalchemy import String, ForeignKey, DateTime, Integer, Enum
 from sqlalchemy.dialects.postgresql import JSONB
-from enum import Enum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
 
-class ArtifactType(str, Enum):
+if TYPE_CHECKING:
+    from app.domains.users.models import User
+    from app.domains.messages.models import Messages
+
+
+class ArtifactType(str, PyEnum):
     IMAGE = "image"
     VIDEO = "video"
     AUDIO = "audio"
@@ -17,14 +24,26 @@ class ArtifactType(str, Enum):
 class Artifact(Base):
     __tablename__ = "artifacts"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid7()))
-    owner_id = Column(String, ForeignKey("users.id"), nullable=False)
-    message_id = Column(String, ForeignKey("messages.id"), nullable=False)
-    name = Column(String, nullable=False)
-    url = Column(String, nullable=False)
-    type = Column(SQLEnum(ArtifactType), nullable=False)
-    artifact_metadata = Column(JSONB)
-    file_size_bytes = Column(Integer, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.now(timezone.utc))
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid7())
+    )
+    owner_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    message_id: Mapped[str] = mapped_column(
+        ForeignKey("messages.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    url: Mapped[str] = mapped_column(String, nullable=False)
+    type: Mapped[ArtifactType] = mapped_column(
+        Enum(enum=ArtifactType, name="artifact_type_enum", create_constraint=False),
+        nullable=False,
+    )
+    artifact_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    file_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
 
-
+    owner: Mapped["User"] = relationship("User", back_populates="artifacts")
+    message: Mapped["Messages"] = relationship("Messages", back_populates="artifacts")
