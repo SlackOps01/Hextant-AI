@@ -43,11 +43,12 @@ class Artifact(Base):
             values_callable=lambda obj: [e.value for e in obj],
         ),
         nullable=False,
+        index=True,
     )
     artifact_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     file_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True
     )
 
     owner: Mapped["User"] = relationship("User", back_populates="artifacts")

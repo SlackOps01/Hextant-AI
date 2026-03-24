@@ -31,7 +31,7 @@ class Subscriptions(Base):
     order_id: Mapped[str] = mapped_column(
         ForeignKey("orders.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    subscription_id: Mapped[str] = mapped_column(String, nullable=False)
+    subscription_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     tier_id: Mapped[str] = mapped_column(
         ForeignKey("tiers.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -43,6 +43,7 @@ class Subscriptions(Base):
             values_callable=lambda obj: [e.value for e in obj],
         ),
         nullable=False,
+        index=True,
     )
     current_period_start: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)

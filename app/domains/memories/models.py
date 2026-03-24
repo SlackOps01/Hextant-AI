@@ -36,9 +36,10 @@ class Memories(Base):
         ),
         nullable=False,
         default=MemoryCategory.OTHER,
+        index=True,
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,

@@ -17,7 +17,7 @@ class Tiers(Base):
     id: Mapped[str] = mapped_column(
         String, primary_key=True, default=lambda: str(uuid7())
     )
-    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     price: Mapped[int] = mapped_column(Integer, nullable=False)
     message_limit: Mapped[int] = mapped_column(Integer, nullable=False)
     image_limit: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -26,9 +26,11 @@ class Tiers(Base):
     model_access: Mapped[list[str]] = mapped_column(
         ARRAY(String), nullable=False, default=[]
     )
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(timezone.utc)
+        DateTime, default=lambda: datetime.now(timezone.utc), index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,

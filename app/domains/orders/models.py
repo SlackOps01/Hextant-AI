@@ -35,7 +35,9 @@ class Orders(Base):
     coupon_id: Mapped[str | None] = mapped_column(
         ForeignKey("coupons.id", ondelete="SET NULL"), nullable=True, index=True
     )
-    paystack_reference: Mapped[str | None] = mapped_column(String, nullable=True)
+    paystack_reference: Mapped[str | None] = mapped_column(
+        String, nullable=True, index=True
+    )
     status: Mapped[OrderStatus] = mapped_column(
         Enum(
             OrderStatus,
@@ -45,6 +47,7 @@ class Orders(Base):
         ),
         nullable=False,
         default=OrderStatus.PENDING,
+        index=True,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)

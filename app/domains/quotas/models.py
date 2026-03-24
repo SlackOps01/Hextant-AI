@@ -34,10 +34,11 @@ class Quotas(Base):
             values_callable=lambda obj: [e.value for e in obj],
         ),
         nullable=False,
+        index=True,
     )
     current_usage: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     limit: Mapped[int] = mapped_column(Integer, nullable=False)
-    reset_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    reset_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )

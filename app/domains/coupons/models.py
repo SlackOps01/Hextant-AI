@@ -30,9 +30,12 @@ class Coupons(Base):
             values_callable=lambda obj: [e.value for e in obj],
         ),
         nullable=False,
+        index=True,
     )
     value: Mapped[int] = mapped_column(Integer, nullable=False)
-    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True, index=True
+    )
     max_redemptions: Mapped[int | None] = mapped_column(Integer, nullable=True)
     times_redeemed: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     created_at: Mapped[datetime] = mapped_column(

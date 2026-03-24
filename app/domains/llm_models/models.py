@@ -32,6 +32,7 @@ class LanguageModels(Base):
             values_callable=lambda obj: [e.value for e in obj],
         ),
         nullable=False,
+        index=True,
     )
     modality: Mapped[ModelModality] = mapped_column(
         Enum(
@@ -41,15 +42,18 @@ class LanguageModels(Base):
             values_callable=lambda obj: [e.value for e in obj],
         ),
         nullable=False,
+        index=True,
     )
     context_length: Mapped[int] = mapped_column(Integer, nullable=False)
-    provider: Mapped[str | None] = mapped_column(String, nullable=True)
+    provider: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
     input_token_price: Mapped[int | None] = mapped_column(Integer, nullable=True)
     output_token_price: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    api_identifier: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    api_identifier: Mapped[str] = mapped_column(
+        String, nullable=False, unique=True, index=True
+    )
     adapter: Mapped[str] = mapped_column(String, default="generic")
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,

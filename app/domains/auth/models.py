@@ -23,8 +23,10 @@ class AuthSessions(Base):
     device_name: Mapped[str | None] = mapped_column(String, nullable=True)
     device_type: Mapped[str] = mapped_column(String, nullable=False)
     device_os: Mapped[str] = mapped_column(String, nullable=False)
-    refresh_token_hash: Mapped[str] = mapped_column(String, nullable=False)
-    is_revoked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    refresh_token_hash: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    is_revoked: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, index=True
+    )
     session_expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
