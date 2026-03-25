@@ -22,6 +22,29 @@ jobs:
     - name: Create virtual environment
       run: uv venv
 
+    - name: Create fake env variables
+      run: |
+        echo "ADMIN_USERNAME=admin" > .env
+        echo "ADMIN_EMAIL=[EMAIL_ADDRESS]" >> .env
+        echo "ADMIN_PASSWORD=admin" >> .env
+
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres" >> .env
+
+        echo "REDIS_PORT=6379" >> .env
+        echo "REDIS_HOST=localhost" >> .env
+
+        echo "SECRET_KEY=secretkey" >> .env
+        echo "ALGORITHM=HS256" >> .env
+        echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+        echo "REFRESH_TOKEN_EXPIRE_DAYS=7" >> .env
+
+        echo "OPENROUTER_API_KEY=test" >> .env
+
+        echo "SECURE_COOKIES=false" >> .env
+
+        
+        
+
     - name: Install dependencies
       run: uv pip install -r requirements.txt
 
