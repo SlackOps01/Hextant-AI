@@ -9,4 +9,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - run: uv run pytest ./app/tests
+    - uses: actions/checkout@v4
+
+    # 1. Install uv
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        version: "latest" # You can also pin a specific version like "0.4.x"
+
+    # 2. Run your tests
+    - name: Run tests
+      run: uv run pytest ./app/tests
