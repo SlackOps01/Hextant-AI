@@ -18,5 +18,9 @@ jobs:
         version: "latest" # You can also pin a specific version like "0.4.x"
 
     # 2. Run your tests
+
+    - name: Install dependencies
+      run: uv sync
+
     - name: Run tests
       run: uv run pytest ./app/tests
