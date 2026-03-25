@@ -11,7 +11,7 @@ This document outlines the development roadmap for Hextant-AI backend, including
 | M0 | Foundation | COMPLETE | - |
 | M1 | Core Chat | PLANNED | High |
 | M2 | Memory System | PLANNED | High |
-| M3 | File Handling | PLANNED | Medium |
+| M3 | Artifact Generation | PLANNED | Medium |
 | M4 | Billing & Quotas | PLANNED | Medium |
 | M5 | Admin & Polish | PLANNED | Low |
 
@@ -137,38 +137,37 @@ Long-term memory extraction and retrieval for contextual conversations.
 
 ---
 
-## M3: File Handling
+## M3: Artifact Generation
 
 **Status:** PLANNED
 **Priority:** Medium
 
-File upload, storage, and attachment system.
+AI-generated content storage and retrieval system.
 
 ### Artifacts Domain
 
 #### Routes (`routes.py`)
 
-- [ ] `POST /artifacts/upload` - Upload file
 - [ ] `GET /artifacts/{id}` - Get artifact metadata
-- [ ] `GET /artifacts/{id}/download` - Download file
+- [ ] `GET /artifacts/{id}/download` - Download artifact
 - [ ] `DELETE /artifacts/{id}` - Delete artifact
 
 #### Service (`service.py`)
 
-- [ ] `ArtifactService.upload()` - Upload to S3
+- [ ] `ArtifactService.create()` - Create from LLM response
 - [ ] `ArtifactService.get_presigned_url()` - Generate download URL
 - [ ] `ArtifactService.delete()` - Remove from S3 and DB
 
 #### Schemas (`schemas.py`)
 
-- [ ] `ArtifactUpload` - Request schema (multipart)
+- [ ] `ArtifactCreate` - Request schema
 - [ ] `ArtifactResponse` - Response schema
 
-### Storage Integration
+### Generation Integration
 
 - [ ] S3 bucket configuration
-- [ ] Presigned URL generation
-- [ ] File type validation
+- [ ] Artifact creation from LLM responses
+- [ ] Content type handling (code, image, document)
 - [ ] Size limit enforcement
 
 ---

@@ -4,7 +4,7 @@ A FastAPI backend for AI-powered conversation platform with LLM integration, use
 
 ## Overview
 
-Hextant-AI is a domain-driven backend service designed to support an AI chat/conversation platform. It provides user authentication, conversation management, LLM model integration, memory systems, and a complete subscription billing infrastructure.
+Hextant-AI is a domain-driven backend service designed to support an AI chat/conversation platform. It provides user authentication, conversation management, MulTI LLMs model integration, memory systems, and a complete subscription billing infrastructure.
 
 ## Features
 
@@ -24,7 +24,7 @@ Hextant-AI is a domain-driven backend service designed to support an AI chat/con
 - **Conversations** - Chat conversation management
 - **Messages** - Message storage with support for text, image, and research types
 - **Memories** - Long-term memory extraction from conversations
-- **Artifacts** - File attachments (images, videos, audio, documents, code)
+- **Artifacts** - AI-generated files (images, code, documents)
 - **LLM Models** - Language model configuration and pricing
 - **Billing** - Complete subscription infrastructure:
   - Tiers - Subscription tiers with usage limits
@@ -64,7 +64,7 @@ app/
 │   ├── conversations/     # Chat conversations
 │   ├── messages/          # Messages in conversations
 │   ├── memories/          # Extracted memories
-│   ├── artifacts/         # File attachments
+│   ├── artifacts/         # AI-generated files
 │   ├── llm_models/        # LLM configuration
 │   ├── subscriptions/     # User subscriptions
 │   ├── tiers/             # Subscription tiers
@@ -154,7 +154,7 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
 User
 ├── auth_sessions[]      # Login sessions
 ├── conversations[]      # Chat conversations
-├── artifacts[]          # Uploaded files
+├── artifacts[]          # AI-generated files
 ├── subscriptions[]      # Subscription history
 ├── orders[]             # Payment history
 └── quotas[]             # Usage quotas
@@ -166,7 +166,7 @@ Conversation
 Message
 ├── conversation         # Parent conversation
 ├── memories[]           # Extracted memories
-└── artifacts[]          # Attached files
+└── artifacts[]          # AI-generated files
 ```
 
 ## License

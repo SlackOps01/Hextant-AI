@@ -20,7 +20,7 @@ UserActionForbiddenException = HTTPException(
 
 class UserService:
     @staticmethod
-    def get_user_by_id(current_user: TokenData, db: Session, user_id: str):
+    def get_user_by_id(db: Session, user_id: str):
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise UserNotFoundException
