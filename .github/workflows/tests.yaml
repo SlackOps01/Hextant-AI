@@ -19,6 +19,9 @@ jobs:
 
     # 2. Run your tests
 
+    - name: Create virtual environment
+      run: uv venv
+
     - name: Install dependencies
       run: uv pip install -r requirements.txt
 
