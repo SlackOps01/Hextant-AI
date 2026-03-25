@@ -20,7 +20,7 @@ jobs:
     # 2. Run your tests
 
     - name: Install dependencies
-      run: uv sync
+      run: uv pip install -r requirements.txt
 
     - name: Run tests
       run: uv run pytest ./app/tests
