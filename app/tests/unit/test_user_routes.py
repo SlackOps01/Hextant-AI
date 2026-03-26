@@ -70,3 +70,13 @@ def test_list_users_route(mocker: MockerFixture):
 
     assert response.status_code == 200
 
+
+def test_delete_user(mocker: MockerFixture):
+    mock_delete = mocker.patch("app.domains.users.routes.UserService.delete_user")
+
+    mock_delete.return_value = {"status": "success"}
+
+    result = client.delete("/users/123")
+
+    assert result.status_code == 204    
+    

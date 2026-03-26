@@ -53,7 +53,9 @@ class UserService:
             raise UserNotFoundException
         db.delete(user)
         db.commit()
-        return True
+        return {
+            "status": "success",
+        }
 
     @staticmethod
     def create_user(db: Session, user_data: UserCreate) -> UserResponse:
