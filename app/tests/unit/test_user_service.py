@@ -78,3 +78,11 @@ def test_create_user(mock_db_session, mocker: MockFixture):
     mock_hash_password.assert_called_once_with("lancelot")
 
     assert result.username == "lanre"
+
+def test_delete_user(mock_db_session, mocker: MockFixture):
+    mock_db_session.query.return_value.first.return_value = fake_user
+
+    result = UserService.delete_user(mock_db_session, "id")
+
+    mock_db_session.delete.assert_called_once()
+    assert result["status"] == "success"
