@@ -13,3 +13,4 @@ passlib[bcrypt]
 user_agents
 pytest
 pytest-mock
+pytest-asyncio
