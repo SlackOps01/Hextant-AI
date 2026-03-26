@@ -64,3 +64,14 @@ def get_user_by_username(
 ):
     logger.info(f"Attempting to get user by username: {username}")
     return UserService.get_user_by_username(db, username)
+
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    request: Request,
+    id: str, 
+    db: Session = Depends(get_db),
+    _=Depends(require_owner_or_admin)
+):
+    logger.info(f"Attempting to delete user by id: {id}")
+    return UserService.delete_user(db, id)
