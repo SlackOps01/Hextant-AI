@@ -1,3 +1,4 @@
+from sqlalchemy import Boolean
 from app.core.database import Base
 from uuid import uuid7
 from datetime import datetime, timezone
@@ -22,6 +23,7 @@ class Conversations(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc), index=True
     )
+    pinned: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc),
