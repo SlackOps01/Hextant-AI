@@ -14,6 +14,10 @@ class ConversationResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+class ConversationUpdate(BaseModel):
+    title: str
+    
+
 
 
 
