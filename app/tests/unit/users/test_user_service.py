@@ -90,3 +90,59 @@ def test_delete_user(mock_db_session, mocker: MockFixture):
 
     mock_db_session.delete.assert_called_once()
     assert result is None
+
+
+def test_create_user_conflict_username(mock_db_session, mocker: MockFixture):
+    from sqlalchemy.exc import IntegrityError
+
+    new_user = UserCreate(
+        username="lanre", email="olanrewajusholarin5@gmail.com", password="lancelot"
+    )
+
+    mock_hash_password = mocker.patch("app.domains.users.service.hash_password")
+    mock_hash_password.return_value = "supersecretpassword"
+
+    mock_orig = MagicMock()
+    mock_orig.__str__ = (
+        lambda self: "duplicate key value violates unique constraint 'users_username_key'"
+    )
+
+    integrity_error = IntegrityError("", "", "")
+    integrity_error.orig = mock_orig
+
+    mock_db_session.commit.side_effect = integrity_error
+
+    with pytest.raises(HTTPException) as exc_info:
+        UserService.create_user(mock_db_session, new_user)
+
+    assert exc_info.value.status_code == 409
+    assert "username" in exc_info.value.detail.lower()
+    mock_db_session.rollback.assert_called_once()
+
+
+def test_create_user_conflict_email(mock_db_session, mocker: MockFixture):
+    from sqlalchemy.exc import IntegrityError
+
+    new_user = UserCreate(
+        username="lanre", email="olanrewajusholarin5@gmail.com", password="lancelot"
+    )
+
+    mock_hash_password = mocker.patch("app.domains.users.service.hash_password")
+    mock_hash_password.return_value = "supersecretpassword"
+
+    mock_orig = MagicMock()
+    mock_orig.__str__ = (
+        lambda self: "duplicate key value violates unique constraint 'users_email_key'"
+    )
+
+    integrity_error = IntegrityError("", "", "")
+    integrity_error.orig = mock_orig
+
+    mock_db_session.commit.side_effect = integrity_error
+
+    with pytest.raises(HTTPException) as exc_info:
+        UserService.create_user(mock_db_session, new_user)
+
+    assert exc_info.value.status_code == 409
+    assert "email" in exc_info.value.detail.lower()
+    mock_db_session.rollback.assert_called_once()
