@@ -19,9 +19,13 @@ Hextant-AI is a domain-driven backend service designed to support an AI chat/con
 
 - **User Management** - User model with role-based access (admin/user)
 
+- **Conversations** - Chat conversation management
+  - Create, list, update, and delete conversations
+  - User-scoped conversation queries
+  - Auto-title support
+
 ### In Progress (Models Defined)
 
-- **Conversations** - Chat conversation management
 - **Messages** - Message storage with support for text, image, and research types
 - **Memories** - Long-term memory extraction from conversations
 - **Artifacts** - AI-generated files (images, code, documents)
@@ -145,6 +149,16 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
 | GET | `/users/` | List users | TBD |
 | GET | `/users/{id}` | Get user by ID | TBD |
 | POST | `/users/` | Create user | TBD |
+
+### Conversations
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/conversations/` | Create new conversation | Yes |
+| GET | `/conversations/` | List user's conversations | Yes |
+| GET | `/conversations/{id}` | Get conversation details | Yes |
+| PATCH | `/conversations/{id}` | Update conversation title | Yes |
+| DELETE | `/conversations/{id}` | Delete conversation | Yes |
 
 ## Domain Models
 

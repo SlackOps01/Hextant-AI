@@ -22,7 +22,7 @@ class ConversationService:
         db.commit()
         db.refresh(conversation)
         return conversation
-
+    
     def list_conversations(db: Session, user_id: str) -> list[ConversationResponse]:
         conversations = db.query(Conversations).filter(Conversations.user_id == user_id).all()
         return conversations
