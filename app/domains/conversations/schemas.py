@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime, timezone
 
 
@@ -13,6 +13,8 @@ class ConversationResponse(BaseModel):
     pinned: bool
     created_at: datetime
     updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 class ConversationUpdate(BaseModel):
     title: str

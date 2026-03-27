@@ -1,5 +1,4 @@
-from time import timezone
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 import pytest
 from unittest.mock import MagicMock
@@ -14,11 +13,6 @@ def mock_db_session():
 
 
 def test_create_conversation(mock_db_session, mocker: MockerFixture):
-    fake_conversation = Conversations(
-        user_id="user-123",
-        title="New Conversation"
-    )
-
     def fake_db_refresh(instance):
         instance.id = "conv123"
         instance.pinned = False
@@ -26,5 +20,13 @@ def test_create_conversation(mock_db_session, mocker: MockerFixture):
         instance.updated_at = datetime.now(timezone.utc)
 
     mock_db_session.refresh.side_effect = fake_db_refresh
+
+    result = ConversationService.create_conversation(mock_db_session, "user-123")
+    assert result.id == "conv123"
+    assert result.user_id == "user-123"
+    assert result.title == "New Conversation"
+    assert not result.pinned
+    assert result.created_at is not None
+    assert result.updated_at is not None
 
 
