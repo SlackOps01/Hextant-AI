@@ -23,14 +23,14 @@ class TokenData(BaseModel):
     id: str
     role: Role
     exp: datetime
-    jti: Optional[str]
+    jti: Optional[str] = None
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def create_access_token(data: TokenRequest) -> str:
-    data_dict = data.model_dump()
+    data_dict = data.model_dump(exclude_none=True)
     payload = data_dict.copy()
     exp = datetime.now(timezone.utc) + timedelta(minutes=CONFIG.ACCESS_TOKEN_EXPIRE_MINUTES)
     
@@ -42,7 +42,7 @@ def create_access_token(data: TokenRequest) -> str:
     return jwt.encode(payload, CONFIG.SECRET_KEY, algorithm=CONFIG.ALGORITHM)
 
 def create_refresh_token(data: TokenRequest) -> str:
-    data_dict = data.model_dump()
+    data_dict = data.model_dump(exclude_none=True)
     payload = data_dict.copy()
     exp = datetime.now(timezone.utc) + timedelta(days=CONFIG.REFRESH_TOKEN_EXPIRE_DAYS)
     
