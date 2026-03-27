@@ -89,4 +89,4 @@ def test_delete_user(mock_db_session, mocker: MockFixture):
     result = UserService.delete_user(mock_db_session, "id")
 
     mock_db_session.delete.assert_called_once()
-    assert result["status"] == "success"
+    assert result is None

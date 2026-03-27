@@ -2,7 +2,7 @@ from app.core.database import Base
 from uuid import uuid7
 from datetime import datetime, timezone
 from enum import Enum as PyEnum
-from sqlalchemy import String, Integer, DateTime, Enum
+from sqlalchemy import String, Integer, DateTime, Enum, Float
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -46,8 +46,8 @@ class LanguageModels(Base):
     )
     context_length: Mapped[int] = mapped_column(Integer, nullable=False)
     provider: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
-    input_token_price: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    output_token_price: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    input_token_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    output_token_price: Mapped[float | None] = mapped_column(Float, nullable=True)
     api_identifier: Mapped[str] = mapped_column(
         String, nullable=False, unique=True, index=True
     )

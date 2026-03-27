@@ -3,6 +3,7 @@ from app.domains.users.schemas import UserUpdate
 from app.domains.users.schemas import UserResponse
 from app.domains.users.schemas import UserCreate
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from app.domains.users.models import User
 from app.utils.password import hash_password
 
@@ -14,6 +15,13 @@ UserNotFoundException = HTTPException(
 UserActionForbiddenException = HTTPException(
     status_code=status.HTTP_403_FORBIDDEN, detail="Action forbidden!"
 )
+
+
+def get_user_conflict_exception(field: str, value: str) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail=f"User with {field} '{value}' already exists",
+    )
 
 
 class UserService:
@@ -44,31 +52,32 @@ class UserService:
         return db.query(User).offset(skip).limit(limit).all()
 
     @staticmethod
-    def delete_user(db: Session, user_id: str):
+    def delete_user(db: Session, user_id: str) -> None:
         # No auth logic here anymore!
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise UserNotFoundException
         db.delete(user)
         db.commit()
-        return {
-            "status": "success",
-        }
+        return None
 
     @staticmethod
     def create_user(db: Session, user_data: UserCreate) -> UserResponse:
-        # Hash the password on the Pydantic object first
         user_data.password = hash_password(user_data.password)
-
-        # Dump to dict. mode="json" ensures URLs/UUIDs are converted to strings for SQLAlchemy
         user_dict = user_data.model_dump(mode="json")
-
         user = User(**user_dict)
         db.add(user)
-        db.commit()
-        db.refresh(user)
-
-        # Use the modern Pydantic V2 method
+        try:
+            db.commit()
+            db.refresh(user)
+        except IntegrityError as e:
+            db.rollback()
+            error_msg = str(e.orig).lower()
+            if "username" in error_msg:
+                raise get_user_conflict_exception("username", user_data.username)
+            elif "email" in error_msg:
+                raise get_user_conflict_exception("email", user_data.email)
+            raise get_user_conflict_exception("field", "")
         return UserResponse.model_validate(user)
 
     @staticmethod
