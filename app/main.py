@@ -10,7 +10,7 @@ from httpx import AsyncClient
 from app.utils.create_admin import create_admin_user
 from app.core.limiter import limiter
 from slowapi.errors import RateLimitExceeded
-from app.domains import user_router, auth_router, conversation_router
+from app.domains import user_router, auth_router, conversation_router, llm_model_router
 
 
 def custom_rate_limit_exceeded_handler(request: Request, exc: Exception):
@@ -55,6 +55,7 @@ app.add_exception_handler(RateLimitExceeded, custom_rate_limit_exceeded_handler)
 app.include_router(user_router)
 app.include_router(auth_router)
 app.include_router(conversation_router)
+app.include_router(llm_model_router)
 
 
 @app.get("/")
