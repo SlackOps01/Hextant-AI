@@ -31,4 +31,4 @@ def test_create_conversation(mock_db_session, mocker: MockerFixture):
     assert result.user_id == "user-123"
 
 
-def test_
+
