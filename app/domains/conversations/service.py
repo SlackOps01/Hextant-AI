@@ -1,13 +1,11 @@
 from fastapi import HTTPException, status
-from app.domains.conversations.schemas import ConversationUpdate
 from sqlalchemy.orm import Session
-from app.domains.conversations.schemas import ConversationCreate, ConversationResponse, ConversationUpdate
+from app.domains.conversations.schemas import ConversationResponse, ConversationUpdate
 from app.domains.conversations.models import Conversations
 
 
 ConversationNotFoundException = HTTPException(
-    detail="Conversation not found",
-    status_code=status.HTTP_404_NOT_FOUND
+    detail="Conversation not found", status_code=status.HTTP_404_NOT_FOUND
 )
 
 
@@ -22,15 +20,25 @@ class ConversationService:
         db.commit()
         db.refresh(conversation)
         return conversation
-    
+
     @staticmethod
     def list_conversations(db: Session, user_id: str) -> list[ConversationResponse]:
-        conversations = db.query(Conversations).filter(Conversations.user_id == user_id).all()
+        conversations = (
+            db.query(Conversations).filter(Conversations.user_id == user_id).all()
+        )
         return conversations
 
     @staticmethod
-    def update_conversation(db: Session, data: ConversationUpdate, user_id: str, conversation_id: str) -> ConversationResponse:
-        conversation = db.query(Conversations).filter(Conversations.id==conversation_id, Conversations.user_id == user_id).first()
+    def update_conversation(
+        db: Session, data: ConversationUpdate, user_id: str, conversation_id: str
+    ) -> ConversationResponse:
+        conversation = (
+            db.query(Conversations)
+            .filter(
+                Conversations.id == conversation_id, Conversations.user_id == user_id
+            )
+            .first()
+        )
         if not conversation:
             raise ConversationNotFoundException
         conversation.title = data.title
@@ -40,13 +48,17 @@ class ConversationService:
 
     @staticmethod
     def delete_conversation(db: Session, user_id: str, conversation_id: str):
-        conversation = db.query(Conversations).filter(Conversations.id==conversation_id, Conversations.user_id == user_id).first()
+        conversation = (
+            db.query(Conversations)
+            .filter(
+                Conversations.id == conversation_id, Conversations.user_id == user_id
+            )
+            .first()
+        )
         if not conversation:
             raise ConversationNotFoundException
 
         db.delete(conversation)
         db.commit()
 
-        return {
-            "status": "deleted"
-        }
+        return {"status": "deleted"}

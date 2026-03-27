@@ -1,7 +1,7 @@
 from datetime import timezone
 from datetime import datetime
 from pytest_mock import MockerFixture
-import pytest
+
 from unittest.mock import MagicMock
 from sqlalchemy.orm import Session
 from fastapi.testclient import TestClient
@@ -20,6 +20,7 @@ client = TestClient(app)
 def override_get_db():
     yield MagicMock(spec=Session)
 
+
 def override_require_admin():
     return {"id": "admin_123", "role": "admin"}
 
@@ -33,19 +34,15 @@ def test_user_register_route(mocker: MockerFixture):
     mock_create = mocker.patch("app.domains.users.routes.UserService.create_user")
 
     mock_create.return_value = {
-        "id": "123", 
-        "email": "email@mail.com", 
+        "id": "123",
+        "email": "email@mail.com",
         "username": "lanre",
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
-        "role": Role.USER.value
-        }
-
-    payload = {
-        "username": "lanre",
-        "email": "email@mail.com",
-        "password": "12345678"
+        "role": Role.USER.value,
     }
+
+    payload = {"username": "lanre", "email": "email@mail.com", "password": "12345678"}
 
     response = client.post("/users/register", json=payload)
 
@@ -59,12 +56,12 @@ def test_list_users_route(mocker: MockerFixture):
 
     mock_list.return_value = [
         {
-            "id": "123", 
-            "email": "email@mail.com", 
+            "id": "123",
+            "email": "email@mail.com",
             "username": "lanre",
             "created_at": datetime.now(timezone.utc),
             "updated_at": datetime.now(timezone.utc),
-            "role": Role.USER.value
+            "role": Role.USER.value,
         }
     ]
 
@@ -80,5 +77,4 @@ def test_delete_user(mocker: MockerFixture):
 
     result = client.delete("/users/123")
 
-    assert result.status_code == 204    
-    
+    assert result.status_code == 204

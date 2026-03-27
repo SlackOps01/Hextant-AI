@@ -1,13 +1,9 @@
-from fastapi.security import OAuth2PasswordRequestForm
 from redis.asyncio import Redis
-import pytest
 from pytest_mock import MockerFixture
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from app.domains.auth.routes import router
-from app.core.deps import get_db, get_redis
-from sqlalchemy.orm import Session
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock
 
 
 app = FastAPI()
@@ -20,15 +16,9 @@ client = TestClient(app)
 def test_login(mocker: MockerFixture):
     mock_login = mocker.patch("app.domains.auth.routes.AuthService.login")
 
-    mock_login.return_value = {
-        "access_token": "access-jwt",
-        "token_type": "bearer"
-    }
+    mock_login.return_value = {"access_token": "access-jwt", "token_type": "bearer"}
 
-    payload = {
-        "username": "lanre",
-        "password": "password1234"
-    }
+    payload = {"username": "lanre", "password": "password1234"}
 
     response = client.post("/auth/login", data=payload)
 
@@ -39,9 +29,7 @@ def test_login(mocker: MockerFixture):
 
 def test_logout(mocker: MockerFixture):
     mock_logout = mocker.patch("app.domains.auth.routes.AuthService.logout")
-    mock_logout.return_value = {
-        "status": "revoked"
-    }
+    mock_logout.return_value = {"status": "revoked"}
     app.state.redis_client = AsyncMock(spec=Redis)
     response = client.post("/auth/logout")
 
@@ -52,10 +40,7 @@ def test_logout(mocker: MockerFixture):
 
 def test_refresh(mocker: MockerFixture):
     mock_refresh = mocker.patch("app.domains.auth.routes.AuthService.refresh")
-    mock_refresh.return_value =  {
-            "access_token": "access_token",
-            "token_type": "bearer"
-        }
+    mock_refresh.return_value = {"access_token": "access_token", "token_type": "bearer"}
 
     response = client.post("/auth/refresh")
 
