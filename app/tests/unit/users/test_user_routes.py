@@ -2,6 +2,8 @@ from datetime import timezone
 from datetime import datetime
 from pytest_mock import MockerFixture
 import pytest
+from unittest.mock import MagicMock
+from sqlalchemy.orm import Session
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from app.domains.users.routes import router
@@ -16,7 +18,7 @@ client = TestClient(app)
 
 
 def override_get_db():
-    yield "mocked_db"
+    yield MagicMock(spec=Session)
 
 def override_require_admin():
     return {"id": "admin_123", "role": "admin"}
