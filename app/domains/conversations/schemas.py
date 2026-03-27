@@ -1,9 +1,13 @@
 from pydantic import BaseModel, Field, ConfigDict
-from datetime import datetime, timezone
+from datetime import datetime
 
 
 class ConversationCreate(BaseModel):
-    title: str = Field(default="New Conversation", max_length=255, description="Title of the conversation")
+    title: str = Field(
+        default="New Conversation",
+        max_length=255,
+        description="Title of the conversation",
+    )
 
 
 class ConversationResponse(BaseModel):
@@ -16,11 +20,6 @@ class ConversationResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class ConversationUpdate(BaseModel):
     title: str
-    
-
-
-
-
-    

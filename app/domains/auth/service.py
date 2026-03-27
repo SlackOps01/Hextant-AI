@@ -1,12 +1,18 @@
 from app.core.tokens import revoke_tokens, is_token_revoked
-from app.utils.password import hash_password
+
 from app.core.config import CONFIG
 from sqlalchemy.orm import Session
 from redis.asyncio import Redis
 from fastapi import HTTPException, status, Request, Response
 from app.core.logging import logger
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
-from app.core.oauth2 import create_access_token, create_refresh_token, verify_token, TokenTypes, TokenRequest
+from app.core.oauth2 import (
+    create_access_token,
+    create_refresh_token,
+    verify_token,
+    TokenTypes,
+    TokenRequest,
+)
 from app.domains.users.models import User
 from app.domains.auth.models import AuthSessions
 from user_agents.parsers import user_agent_parser
@@ -14,46 +20,60 @@ from uuid import uuid7
 from datetime import datetime, timedelta, timezone
 from app.utils.password import verify_password
 from sqlalchemy import or_
-from fastapi.concurrency import run_in_threadpool # For blocking async code
+from fastapi.concurrency import run_in_threadpool  # For blocking async code
 
 
 InvalidCredentialException = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED, 
-    detail="Invalid credentials"
+    status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
 )
 
 RevokedSessionException = HTTPException(
-    detail="Session has been revoked",
-    status_code=status.HTTP_401_UNAUTHORIZED
+    detail="Session has been revoked", status_code=status.HTTP_401_UNAUTHORIZED
 )
+
 
 def set_refresh_cookie(response: Response, refresh_token: str):
     response.set_cookie(
-            key="refresh_token",
-            value=refresh_token,
-            max_age=60*60*24*7,
-            httponly=True,
-            samesite="lax",
-            path="/",
-            secure= CONFIG.SECURE_COOKIES
-        )
+        key="refresh_token",
+        value=refresh_token,
+        max_age=60 * 60 * 24 * 7,
+        httponly=True,
+        samesite="lax",
+        path="/",
+        secure=CONFIG.SECURE_COOKIES,
+    )
 
 
 class AuthService:
     @staticmethod
-    def login(request: Request, response: Response, db: Session, form_data: OAuth2PasswordRequestForm):
+    def login(
+        request: Request,
+        response: Response,
+        db: Session,
+        form_data: OAuth2PasswordRequestForm,
+    ):
         logger.info(f"Attempting login for username/email: {form_data.username}")
-        user = db.query(User).filter(
-            or_(User.username == form_data.username, User.email == form_data.username)
-        ).first()
+        user = (
+            db.query(User)
+            .filter(
+                or_(
+                    User.username == form_data.username,
+                    User.email == form_data.username,
+                )
+            )
+            .first()
+        )
         if not user:
-            logger.warning(f"Login failed: User with email '{form_data.username}' not found.")
+            logger.warning(
+                f"Login failed: User with email '{form_data.username}' not found."
+            )
             raise InvalidCredentialException
-            
+
         if not verify_password(form_data.password, user.password):
-            logger.warning(f"Login failed: Password verification failed for '{form_data.username}'.")
+            logger.warning(
+                f"Login failed: Password verification failed for '{form_data.username}'."
+            )
             raise InvalidCredentialException
-        
 
         refresh_token_jti = str(uuid7())
 
@@ -67,7 +87,6 @@ class AuthService:
         device_name: dict = user_agent_parser.ParseDevice(user_agent_raw)
         ip_address = request.client.host
 
-
         auth_session = AuthSessions(
             user_id=user.id,
             user_agent=user_agent_raw or "Unknown",
@@ -76,18 +95,14 @@ class AuthService:
             device_os=os.get("family", "unknown"),
             device_type="Unknown",
             refresh_token_jti=refresh_token_jti,
-            session_expires_at=datetime.now(timezone.utc) + timedelta(days=7)
+            session_expires_at=datetime.now(timezone.utc) + timedelta(days=7),
         )
         db.add(auth_session)
         db.commit()
 
         set_refresh_cookie(response, refresh_token)
-        
-        return {
-            "access_token": access_token,
-            "token_type": "bearer"
-        }
 
+        return {"access_token": access_token, "token_type": "bearer"}
 
     @staticmethod
     async def logout(request: Request, response: Response, db: Session, redis: Redis):
@@ -95,13 +110,18 @@ class AuthService:
         if not refresh_token:
             raise InvalidCredentialException
 
-        token_data = verify_token(refresh_token, InvalidCredentialException, TokenTypes.REFRESH)
-        auth_session = await run_in_threadpool(lambda: db.query(AuthSessions).filter(AuthSessions.refresh_token_jti == token_data.jti).first())
+        token_data = verify_token(
+            refresh_token, InvalidCredentialException, TokenTypes.REFRESH
+        )
+        auth_session = await run_in_threadpool(
+            lambda: db.query(AuthSessions)
+            .filter(AuthSessions.refresh_token_jti == token_data.jti)
+            .first()
+        )
         if not auth_session:
             raise InvalidCredentialException
         auth_session.is_revoked = True
         await run_in_threadpool(lambda: db.commit())
-
 
         if await is_token_revoked(redis, token_data.jti):
             raise RevokedSessionException
@@ -112,15 +132,10 @@ class AuthService:
             httponly=True,
             samesite="lax",
             path="/",
-            secure=CONFIG.SECURE_COOKIES
+            secure=CONFIG.SECURE_COOKIES,
         )
 
-        return {
-            "status": "revoked"
-        }
-
-
-    
+        return {"status": "revoked"}
 
     @staticmethod
     async def refresh(request: Request, response: Response, db: Session, redis: Redis):
@@ -130,7 +145,11 @@ class AuthService:
 
         token_data = verify_token(token, InvalidCredentialException, TokenTypes.REFRESH)
 
-        auth_session = await run_in_threadpool(lambda: db.query(AuthSessions).filter(AuthSessions.refresh_token_jti == token_data.jti).first())
+        auth_session = await run_in_threadpool(
+            lambda: db.query(AuthSessions)
+            .filter(AuthSessions.refresh_token_jti == token_data.jti)
+            .first()
+        )
         if not auth_session or auth_session.is_revoked:
             raise InvalidCredentialException
 
@@ -141,20 +160,17 @@ class AuthService:
 
         refresh_token_jti = str(uuid7())
 
-        refresh_token = create_refresh_token(TokenRequest(id=token_data.id, role=token_data.role, jti=refresh_token_jti))
-        access_token = create_access_token(TokenRequest(id=token_data.id, role=token_data.role))   
-    
+        refresh_token = create_refresh_token(
+            TokenRequest(id=token_data.id, role=token_data.role, jti=refresh_token_jti)
+        )
+        access_token = create_access_token(
+            TokenRequest(id=token_data.id, role=token_data.role)
+        )
+
         auth_session.refresh_token_jti = refresh_token_jti
-        
+
         await run_in_threadpool(lambda: db.commit())
 
         set_refresh_cookie(response, refresh_token)
 
-        return {
-            "access_token": access_token,
-            "token_type": "bearer"
-        }
-
-
-
-        
+        return {"access_token": access_token, "token_type": "bearer"}

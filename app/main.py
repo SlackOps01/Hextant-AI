@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from redis.asyncio import Redis
 from httpx import AsyncClient
-from app.domains import *  # noqa: F401, F403
+
 from app.utils.create_admin import create_admin_user
 from app.core.limiter import limiter
 from slowapi.errors import RateLimitExceeded
@@ -16,14 +16,11 @@ from app.domains import user_router, auth_router, conversation_router
 def custom_rate_limit_exceeded_handler(request: Request, exc: Exception):
     logger.warning(f"Rate limit exceeded for {request.client.host}")
 
-    custom_headers = {
-        "Retry-After": "60",
-        "Information": "Hehehehe"
-    }
+    custom_headers = {"Retry-After": "60", "Information": "Hehehehe"}
     return JSONResponse(
         status_code=429,
         content={"error": "Too Many Requests", "detail": exc.detail},
-        headers=custom_headers
+        headers=custom_headers,
     )
 
 
@@ -58,8 +55,6 @@ app.add_exception_handler(RateLimitExceeded, custom_rate_limit_exceeded_handler)
 app.include_router(user_router)
 app.include_router(auth_router)
 app.include_router(conversation_router)
-
-
 
 
 @app.get("/")

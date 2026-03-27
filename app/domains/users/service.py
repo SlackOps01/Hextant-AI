@@ -1,5 +1,3 @@
-from app.shared.enums import Role
-from app.core.oauth2 import TokenData
 from fastapi import HTTPException, status
 from app.domains.users.schemas import UserUpdate
 from app.domains.users.schemas import UserResponse
@@ -79,7 +77,7 @@ class UserService:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise UserNotFoundException
-            
+
         update_dict = user_data.model_dump(exclude_unset=True, mode="json")
 
         # Safely check the dictionary for a password update
