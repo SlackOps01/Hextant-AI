@@ -14,13 +14,9 @@ def mock_db_session():
 
 
 def test_create_conversation(mock_db_session, mocker: MockerFixture):
-    fake_conversation_create = ConversationCreate(
-        title="Fake convo"
-    )
-
     fake_conversation = Conversations(
         user_id="user-123",
-        title=fake_conversation_create.title
+        title="New Conversation"
     )
 
     def fake_db_refresh(instance):

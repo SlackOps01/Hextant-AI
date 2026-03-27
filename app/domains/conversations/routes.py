@@ -11,9 +11,27 @@ router = APIRouter(prefix="/conversations", tags=["Conversations"])
 
 @router.post("/", response_model=ConversationResponse, status_code=status.HTTP_201_CREATED)
 def create_conversation(
-    data: ConversationCreate,
     db: Session = Depends(get_db),
     current_user: TokenData = Depends(get_current_user)
 ):
     user_id = current_user.id
-    return ConversationService.create_conversation(db, user_id, data)
+    return ConversationService.create_conversation(db, user_id)
+
+
+@router.get("/", response_model=list[ConversationResponse])
+def list_conversations(
+    db: Session = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user)
+):
+    user_id = current_user.id
+    return ConversationService.list_conversations(db, user_id)
+
+@router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_conversation(
+    conversation_id: str,
+    db: Session = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
+):
+    user_id = current_user.id
+    return ConversationService.delete_conversation(db, user_id, conversation_id)
+    

@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 
 
 class ConversationCreate(BaseModel):
-    title: str = "New Conversation"
+    title: str = Field(default="New Conversation", max_length=255, description="Title of the conversation")
 
 
 class ConversationResponse(BaseModel):
