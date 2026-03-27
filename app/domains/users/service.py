@@ -52,16 +52,14 @@ class UserService:
         return db.query(User).offset(skip).limit(limit).all()
 
     @staticmethod
-    def delete_user(db: Session, user_id: str):
+    def delete_user(db: Session, user_id: str) -> None:
         # No auth logic here anymore!
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise UserNotFoundException
         db.delete(user)
         db.commit()
-        return {
-            "status": "success",
-        }
+        return None
 
     @staticmethod
     def create_user(db: Session, user_data: UserCreate) -> UserResponse:

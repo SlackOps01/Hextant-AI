@@ -23,10 +23,12 @@ class ConversationService:
         db.refresh(conversation)
         return conversation
 
+    @staticmethod
     def list_conversations(db: Session, user_id: str) -> list[ConversationResponse]:
         conversations = db.query(Conversations).filter(Conversations.user_id == user_id).all()
         return conversations
 
+    @staticmethod
     def update_conversation(db: Session, data: ConversationUpdate, user_id: str, conversation_id: str) -> ConversationResponse:
         conversation = db.query(Conversations).filter(Conversations.id==conversation_id, Conversations.user_id == user_id).first()
         if not conversation:
@@ -36,7 +38,8 @@ class ConversationService:
         db.refresh(conversation)
         return conversation
 
-    def delete_conversation(db: Session, user_id: str, conversation_id: str):
+    @staticmethod
+    def delete_conversation(db: Session, user_id: str, conversation_id: str) -> None:
         conversation = db.query(Conversations).filter(Conversations.id==conversation_id, Conversations.user_id == user_id).first()
         if not conversation:
             raise ConversationNotFoundException
@@ -44,6 +47,4 @@ class ConversationService:
         db.delete(conversation)
         db.commit()
 
-        return {
-            "status": "deleted"
-        }
+        return None

@@ -16,6 +16,17 @@ class LanguageModelCreate(BaseModel):
     adapter: Optional[str] =  Field(None, description="The adapter for the model", examples=["generic"])
 
 
+class LanguageModelUpdate(BaseModel):
+    display_name: Optional[str] = Field(None, description="The display name of the model", examples=["GPT-4"])
+    model_type: Optional[ModelType] = Field(None, description="The type of the model", examples=[ModelType.TEXT])
+    modality: Optional[ModelModality] = Field(None, description="The modality of the model", examples=[ModelModality.TEXT])
+    context_length: Optional[int] = Field(None, description="The context length of the model", examples=[4096])
+    provider: Optional[str] = Field(None, description="The provider of the model", examples=["OpenAI"])
+    input_token_price: Optional[float] = Field(None, description="The input token price of the model", examples=[1])
+    output_token_price: Optional[float] = Field(None, description="The output token price of the model", examples=[1])
+    api_identifier: Optional[str] = Field(None, description="The api identifier for the model", examples=["xiaomi/mimo-v2-pro"])
+    adapter: Optional[str] =  Field(None, description="The adapter for the model", examples=["generic"])
+
 class LanguageModelResponse(BaseModel):
     id: str = Field(..., description="The id of the model", examples=["123e4567-e89b-12d3-a456-426614174000"])
     display_name: str = Field(..., description="The display name of the model", examples=["GPT-4"])

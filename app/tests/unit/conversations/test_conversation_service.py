@@ -25,7 +25,7 @@ def test_create_conversation(mock_db_session, mocker: MockerFixture):
     mock_db_session.refresh.side_effect = fake_db_refresh
 
     result = ConversationService.create_conversation(
-        mock_db_session, "user-123", fake_conversation_create
+        mock_db_session, "user-123"
     )
 
     assert result.user_id == "user-123"
