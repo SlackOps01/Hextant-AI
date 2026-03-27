@@ -13,10 +13,10 @@ ConversationNotFoundException = HTTPException(
 
 class ConversationService:
     @staticmethod
-    def create_conversation(db: Session, user_id: str, data: ConversationCreate) -> ConversationResponse:
+    def create_conversation(db: Session, user_id: str) -> ConversationResponse:
         conversation = Conversations(
             user_id=user_id,
-            title=data.title,
+            title="New Conversation",
         )
         db.add(conversation)
         db.commit()
