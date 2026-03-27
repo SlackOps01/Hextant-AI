@@ -25,3 +25,8 @@ class LanguageModelService:
             db.rollback()
             raise LanguageModelConflictException
         return LanguageModelResponse.model_validate(db_language_model)
+    
+    @staticmethod
+    def list_language_models(db: Session) -> list[LanguageModelResponse]:
+        language_models = db.query(LanguageModels).all()
+        return [LanguageModelResponse.model_validate(lm) for lm in language_models]
