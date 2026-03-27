@@ -6,11 +6,18 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from redis.asyncio import Redis
 from httpx import AsyncClient
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.utils.create_admin import create_admin_user
 from app.core.limiter import limiter
 from slowapi.errors import RateLimitExceeded
-from app.domains import user_router, auth_router, conversation_router, llm_model_router
+from app.domains import (
+    user_router,
+    auth_router,
+    conversation_router,
+    llm_model_router,
+    tier_router,
+)
 
 
 def custom_rate_limit_exceeded_handler(request: Request, exc: Exception):
@@ -48,6 +55,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, custom_rate_limit_exceeded_handler)
 
@@ -56,6 +71,7 @@ app.include_router(user_router)
 app.include_router(auth_router)
 app.include_router(conversation_router)
 app.include_router(llm_model_router)
+app.include_router(tier_router)
 
 
 @app.get("/")
