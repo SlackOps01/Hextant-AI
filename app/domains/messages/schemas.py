@@ -1,17 +1,18 @@
 from pydantic import BaseModel
 from datetime import datetime
+from app.domains.messages.models import MessageType, MessageRole
 
 class MessageCreate(BaseModel):
-    model: str
+    model_id: str
     message: str
 
 
 class MessageResponse(BaseModel):
     id: str
     conversation_id: str
-    role: str
+    role: MessageRole
     content: str
-    message_type: str
+    message_type: MessageType
     message_metadata: dict | None
     file_url: str | None
     file_name: str | None

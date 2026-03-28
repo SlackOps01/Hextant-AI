@@ -40,6 +40,7 @@ class Messages(Base):
         ),
         nullable=False,
     )
+    model_id: Mapped[str] = mapped_column(String, ForeignKey("language_models.id", ondelete="SET NULL"), nullable=True)
     content: Mapped[str] = mapped_column(String, nullable=False)
     message_type: Mapped[MessageType] = mapped_column(
         Enum(
@@ -79,7 +80,11 @@ class Messages(Base):
     artifacts: Mapped[list["Artifact"]] = relationship(
         "Artifact", back_populates="message", cascade="all, delete-orphan"
     )
+    language_model: Mapped["LanguageModels"] = relationship(
+        "LanguageModels", back_populates="messages"
+    )
 
 
 from app.domains.memories.models import Memories
 from app.domains.artifacts.models import Artifact
+from app.domains.llm_models.models import LanguageModels
