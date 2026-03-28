@@ -10,6 +10,7 @@ from app.domains.tiers.models import Tiers
 from app.domains.coupons.models import Coupons
 from app.domains.orders.models import Orders
 from app.domains.quotas.models import Quotas
+from app.domains.attachments.models import Attachments
 
 __all__ = [
     "User",
@@ -24,6 +25,7 @@ __all__ = [
     "Coupons",
     "Orders",
     "Quotas",
+    "Attachments",
 ]
 
 from app.domains.users.routes import router as user_router
