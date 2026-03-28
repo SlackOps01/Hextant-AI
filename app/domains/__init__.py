@@ -31,3 +31,4 @@ from app.domains.auth.routes import router as auth_router
 from app.domains.conversations.routes import router as conversation_router
 from app.domains.llm_models.routes import router as llm_model_router
 from app.domains.tiers.routes import router as tier_router
+from app.domains.messages.routes import router as message_router

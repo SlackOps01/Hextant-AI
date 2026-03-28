@@ -29,6 +29,7 @@ def fake_conversation():
     )
 
 
+
 def test_create_conversation(mock_db_session, mocker: MockerFixture):
     fake_conversation_create = ConversationCreate(title="Fake convo")
 
@@ -40,7 +41,9 @@ def test_create_conversation(mock_db_session, mocker: MockerFixture):
 
     mock_db_session.refresh.side_effect = fake_db_refresh
 
-    result = ConversationService.create_conversation(mock_db_session, "user-123")
+    result = ConversationService.create_conversation(
+        mock_db_session, "user-123"
+    )
 
     assert result.user_id == "user-123"
 

@@ -39,7 +39,7 @@ class ConversationService:
         return conversation
 
     @staticmethod
-    def delete_conversation(db: Session, user_id: str, conversation_id: str) -> None:
+    def delete_conversation(db: Session, user_id: str, conversation_id: str):
         conversation = db.query(Conversations).filter(Conversations.id==conversation_id, Conversations.user_id == user_id).first()
         if not conversation:
             raise ConversationNotFoundException
@@ -47,4 +47,6 @@ class ConversationService:
         db.delete(conversation)
         db.commit()
 
-        return None
+        return {
+            "status": "deleted"
+        }

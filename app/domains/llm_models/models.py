@@ -3,7 +3,7 @@ from uuid import uuid7
 from datetime import datetime, timezone
 from enum import Enum as PyEnum
 from sqlalchemy import String, Integer, DateTime, Enum, Float
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class ModelType(str, PyEnum):
@@ -61,3 +61,10 @@ class LanguageModels(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+
+    messages: Mapped["Messages"] = relationship(
+        "Messages", back_populates="language_model"
+    )
+
+
+from app.domains.messages.models import Messages
