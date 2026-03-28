@@ -31,7 +31,6 @@ def fake_conversation():
 
 
 def test_create_conversation(mock_db_session, mocker: MockerFixture):
-    fake_conversation_create = ConversationCreate(title="Fake convo")
 
     def fake_db_refresh(instance):
         instance.id = "conv123"
