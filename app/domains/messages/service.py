@@ -85,3 +85,14 @@ class MessageService:
         db.commit()
         db.refresh(new_agent_message)
         return new_agent_message
+
+
+    @staticmethod
+    def list_messages(db: Session, conversation_id: str, current_user: TokenData) -> list[MessageResponse]:
+        conversation = db.query(Conversations).filter(Conversations.id == conversation_id, current_user.id == Conversations.user_id).first()
+        if not conversation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found"
+            )
+        messages = db.query(Messages).filter(Messages.conversation_id == conversation_id).order_by(Messages.created_at.asc()).limit(20).all()
+        return [message for message in messages]

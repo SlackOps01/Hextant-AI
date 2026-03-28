@@ -25,3 +25,15 @@ async def create_message(
         db=db,
         current_user=current_user
     )
+
+@router.get("/{conversation_id}", status_code=status.HTTP_200_OK)
+def list_messages(
+    conversation_id: str,
+    current_user: TokenData = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return MessageService.list_messages(
+        conversation_id=conversation_id,
+        current_user=current_user,
+        db=db,
+    )
