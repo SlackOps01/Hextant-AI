@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     S3_SECRET_ACCESS_KEY: str
     S3_BUCKET_NAME: str
     
+    TAVILY_API_KEY: str
 
 
 CONFIG = Settings()

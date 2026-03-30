@@ -5,11 +5,9 @@ from app.domains.conversations.schemas import ConversationResponse, Conversation
 from app.domains.conversations.models import Conversations
 
 
-ConversationNotFoundException = HTTPException(
-    detail="Conversation not found",
-    status_code=status.HTTP_404_NOT_FOUND
-)
-
+class ConversationNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
 
 class ConversationService:
     @staticmethod
@@ -32,7 +30,7 @@ class ConversationService:
     def update_conversation(db: Session, data: ConversationUpdate, user_id: str, conversation_id: str) -> ConversationResponse:
         conversation = db.query(Conversations).filter(Conversations.id==conversation_id, Conversations.user_id == user_id).first()
         if not conversation:
-            raise ConversationNotFoundException
+            raise ConversationNotFoundException()
         conversation.title = data.title
         db.commit()
         db.refresh(conversation)
@@ -42,7 +40,7 @@ class ConversationService:
     def delete_conversation(db: Session, user_id: str, conversation_id: str):
         conversation = db.query(Conversations).filter(Conversations.id==conversation_id, Conversations.user_id == user_id).first()
         if not conversation:
-            raise ConversationNotFoundException
+            raise ConversationNotFoundException()
 
         db.delete(conversation)
         db.commit()

@@ -14,3 +14,4 @@ user_agents
 pytest
 pytest-mock
 pytest-asyncio
+pydantic-ai-slim[tavily]

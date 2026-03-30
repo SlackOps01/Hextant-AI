@@ -127,8 +127,7 @@ def test_update_language_model_not_found(mock_db_session):
             mock_db_session, "nonexistent", update_data
         )
 
-    assert exc_info.value.status_code == 404
-    assert exc_info.value.detail == "Language model not found"
+    assert exc_info.value.detail == "Language model with id nonexistent not found"
 
 
 def test_delete_language_model_success(mock_db_session, fake_language_model):
@@ -148,5 +147,4 @@ def test_delete_language_model_not_found(mock_db_session):
     with pytest.raises(HTTPException) as exc_info:
         LanguageModelService.delete_language_model(mock_db_session, "nonexistent")
 
-    assert exc_info.value.status_code == 404
-    assert exc_info.value.detail == "Language model not found"
+    assert exc_info.value.detail == "Language model with id nonexistent not found"

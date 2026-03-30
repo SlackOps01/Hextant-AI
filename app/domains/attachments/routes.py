@@ -40,7 +40,7 @@ def get_download_url(
 
 @router.get("/", response_model=List[AttachmentResponse])
 def list_attachments(
-    db: Session,
+    db: Session = Depends(get_db),
     current_user: TokenData = Depends(get_current_user),
 ):
     return AttachmentService.list_attachments(
