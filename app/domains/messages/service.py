@@ -1,6 +1,5 @@
-from pydantic_ai import TextPart
-from pydantic_ai import ModelResponse
-from pydantic_ai import ModelRequest
+from pydantic_ai import TextPart, ImageUrl, FileUrl, VideoUrl, AudioUrl
+from pydantic_ai import ModelRequest, ModelResponse
 from app.domains.messages.models import MessageRole
 from pydantic_ai import Agent
 from pydantic_ai.models.openrouter import OpenRouterModel
@@ -15,6 +14,8 @@ from app.domains.messages.models import Messages, MessageType
 from pydantic_ai.messages import ModelMessage, UserPromptPart
 from app.domains.conversations.models import Conversations
 from app.core.oauth2 import TokenData
+from app.domains.attachments.service import AttachmentService
+from app.domains.attachments.models import Attachments
 
 
 def _build_message_history(messages: List[Messages]) -> List[ModelMessage]:
@@ -32,7 +33,6 @@ def _build_message_history(messages: List[Messages]) -> List[ModelMessage]:
                     )
                 )
     return message_history
-
 
 class MessageService:
     @staticmethod
@@ -53,6 +53,32 @@ class MessageService:
             )
         message_history = _build_message_history(db.query(Messages).filter(Messages.conversation_id == conversation_id).order_by(Messages.created_at.asc()).limit(20))
         
+        message = [
+            data.message
+        ]
+        if data.attachments:
+            for attachment_id in data.attachments:
+                attachment = db.query(Attachments).filter(Attachments.id == attachment_id).first()
+                if not attachment:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND, detail="Attachment not found"
+                    )
+                if attachment.mime_type.startswith("image/"):
+                    message.append(
+                        ImageUrl(url=AttachmentService.generate_download_url(db, attachment.id, current_user.id))
+                    )
+                elif attachment.mime_type.startswith("audio/"):
+                    message.append(
+                        AudioUrl(url=AttachmentService.generate_download_url(db, attachment.id, current_user.id))
+                    )
+                elif attachment.mime_type.startswith("video/"):
+                    message.append(
+                        VideoUrl(url=AttachmentService.generate_download_url(db, attachment.id, current_user.id))
+                    )
+                else:
+                    message.append(
+                        FileUrl(url=AttachmentService.generate_download_url(db, attachment.id, current_user.id))
+                    )
         new_message = Messages(
             conversation_id=conversation_id,
             role=MessageRole.USER,
@@ -72,7 +98,7 @@ class MessageService:
             model=model,
             system_prompt="You are a helpful assistant.",
         )
-        result = await agent.run(data.message, message_history=message_history)
+        result = await agent.run(message, message_history=message_history)
         
         new_agent_message = Messages(
             conversation_id=conversation_id,

@@ -17,7 +17,8 @@ from app.domains import (
     conversation_router,
     llm_model_router,
     tier_router,
-    message_router
+    message_router,
+    attachment_router
 )
 
 
@@ -74,6 +75,7 @@ app.include_router(conversation_router)
 app.include_router(llm_model_router)
 app.include_router(tier_router)
 app.include_router(message_router)
+app.include_router(attachment_router)
 
 
 @app.get("/")

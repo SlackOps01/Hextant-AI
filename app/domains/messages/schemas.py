@@ -6,6 +6,7 @@ from app.domains.messages.models import MessageType, MessageRole
 class MessageCreate(BaseModel):
     model_id: str = Field(description="The ID of the language model to use")
     message: str = Field(description="The message to send to the language model")
+    attachments: list[str] | None = Field(description="The IDs of the attachments")
 
 
 class MessageResponse(BaseModel):
