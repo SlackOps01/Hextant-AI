@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from app.domains.messages.models import MessageType, MessageRole
 
@@ -22,3 +22,5 @@ class MessageResponse(BaseModel):
     tools: list[str] | None = Field(description="The tools used in the message")
     created_at: datetime = Field(description="The creation time of the message")
     updated_at: datetime = Field(description="The update time of the message")
+
+    model_config = ConfigDict(from_attributes=True)
