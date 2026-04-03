@@ -9,7 +9,7 @@ This document outlines the development roadmap for Hextant-AI backend, including
 | Milestone | Name | Status | Priority |
 |-----------|------|--------|----------|
 | M0 | Foundation | COMPLETE | - |
-| M1 | Core Chat | PLANNED | High |
+| M1 | Core Chat | IN PROGRESS | High |
 | M2 | Memory System | PLANNED | High |
 | M3 | Artifact Generation | PLANNED | Medium |
 | M4 | Billing & Quotas | PLANNED | Medium |
@@ -42,7 +42,7 @@ Core infrastructure and authentication system.
 
 ## M1: Core Chat
 
-**Status:** PLANNED
+**Status:** IN PROGRESS
 **Priority:** High
 
 Enable basic conversation functionality with LLM integration.
@@ -51,25 +51,23 @@ Enable basic conversation functionality with LLM integration.
 
 #### Routes (`routes.py`)
 
-- [ ] `GET /conversations` - List user's conversations (paginated)
-- [ ] `POST /conversations` - Create new conversation
+- [x] `GET /conversations` - List user's conversations
+- [x] `POST /conversations` - Create new conversation
 - [ ] `GET /conversations/{id}` - Get conversation details
-- [ ] `PATCH /conversations/{id}` - Update conversation (title)
-- [ ] `DELETE /conversations/{id}` - Delete conversation
+- [x] `PATCH /conversations/{id}` - Update conversation (title) *(service only, route pending)*
+- [x] `DELETE /conversations/{id}` - Delete conversation
 
 #### Service (`service.py`)
 
-- [ ] `ConversationService.create()` - Create with auto-title
-- [ ] `ConversationService.get_by_user()` - User-scoped queries
-- [ ] `ConversationService.update()` - Title updates
-- [ ] `ConversationService.delete()` - Cascade delete messages
+- [x] `ConversationService.create()` - Create conversation
+- [x] `ConversationService.list_conversations()` - User-scoped queries
+- [x] `ConversationService.update()` - Title updates
+- [x] `ConversationService.delete()` - Delete conversation
 
 #### Schemas (`schemas.py`)
 
-- [ ] `ConversationCreate` - Request schema
-- [ ] `ConversationUpdate` - Request schema
-- [ ] `ConversationResponse` - Response schema
-- [ ] `ConversationList` - Paginated response
+- [x] `ConversationResponse` - Response schema
+- [x] `ConversationUpdate` - Request schema
 
 ### Messages Domain
 
@@ -301,7 +299,12 @@ Administrative endpoints, validation, logging, and testing.
 
 ### Testing
 
-- [ ] Unit tests (pytest)
+- [x] Unit tests setup (pytest, pytest-mock, pytest-asyncio)
+- [x] Auth service tests
+- [x] Auth route tests
+- [x] User service tests
+- [x] User route tests
+- [ ] Conversation tests
 - [ ] Integration tests
 - [ ] API tests (TestClient)
 - [ ] Coverage reporting
@@ -341,4 +344,4 @@ See individual milestone tasks for contribution opportunities. Each task can be 
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | TBD | Initial release with M0+M1 |
+| 0.1.0 | TBD | M0 Foundation complete, M1 partially complete (conversations CRUD) |

@@ -1,4 +1,6 @@
-from pydantic_ai import TextPart, ImageUrl, FileUrl, VideoUrl, AudioUrl
+from app.core.logging import logger
+from pydantic_ai.exceptions import ModelHTTPError
+from pydantic_ai import TextPart, ImageUrl, VideoUrl, AudioUrl, DocumentUrl
 from pydantic_ai import ModelRequest, ModelResponse
 from app.domains.messages.models import MessageRole
 from pydantic_ai import Agent
@@ -26,6 +28,10 @@ class LanguageModelNotFound(HTTPException):
 class ConversationNotFound(HTTPException):
     def __init__(self, conversation_id: str):
         super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail=f"Conversation with id {conversation_id} not found")
+
+class ModelFeatureNotSupportedError(HTTPException):
+    def __init__(self, message: str):
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
 
 def _build_message_history(messages: List[Messages]) -> List[ModelMessage]:
     message_history: List[ModelMessage] = []
@@ -63,7 +69,8 @@ class MessageService:
                 
             messages = db.query(Messages).filter(
                 Messages.conversation_id == conversation_id
-            ).order_by(Messages.created_at.asc()).limit(20).all()
+            ).order_by(Messages.created_at.desc()).limit(30).all()
+            messages.reverse()
             
             return db_language_model, messages
 
@@ -91,7 +98,7 @@ class MessageService:
                 elif mime_type.startswith("video/"):
                     message.append(VideoUrl(url=url))
                 else:
-                    message.append(FileUrl(url=url))
+                    message.append(DocumentUrl(url=url))
 
         def save_user_message():
             new_msg = Messages(
@@ -112,30 +119,34 @@ class MessageService:
             model_name=db_language_model.api_identifier,
             provider=OpenRouterProvider(api_key=CONFIG.OPENROUTER_API_KEY),
         )
-        agent = Agent(
-            model=model,
-            system_prompt="You are a helpful assistant.",
-            tools=[tavily_search_tool(api_key=CONFIG.TAVILY_API_KEY)]
-        )
-        
-        result = await agent.run(message, message_history=message_history)
-        
-        def save_agent_message(output):
-            new_agent_msg = Messages(
-                conversation_id=conversation_id,
-                role=MessageRole.ASSISTANT,
-                model_id=data.model_id,
-                content=output,
-                message_type=MessageType.TEXT,
+        try:
+            agent = Agent(
+                model=model,
+                system_prompt="You are a helpful assistant.",
+                tools=[tavily_search_tool(api_key=CONFIG.TAVILY_API_KEY)]
             )
-            db.add(new_agent_msg)
-            db.commit()
-            db.refresh(new_agent_msg)
-            return new_agent_msg
             
-        new_agent_message = await run_in_threadpool(lambda: save_agent_message(result.output))
-        return new_agent_message
+            result = await agent.run(message, message_history=message_history)
+            
+            def save_agent_message(output):
+                new_agent_msg = Messages(
+                    conversation_id=conversation_id,
+                    role=MessageRole.ASSISTANT,
+                    model_id=data.model_id,
+                    content=output,
+                    message_type=MessageType.TEXT,
+                )
+                db.add(new_agent_msg)
+                db.commit()
+                db.refresh(new_agent_msg)
+                return new_agent_msg
+                
+            new_agent_message = await run_in_threadpool(lambda: save_agent_message(result.output))
+            return new_agent_message
 
+        except ModelHTTPError as e:
+            logger.error(f"Model HTTP Error: {str(e)}")
+            raise ModelFeatureNotSupportedError(str(e))
 
 
     @staticmethod
@@ -143,5 +154,6 @@ class MessageService:
         conversation = db.query(Conversations).filter(Conversations.id == conversation_id, current_user.id == Conversations.user_id).first()
         if not conversation:
             raise ConversationNotFound(conversation_id)
-        messages = db.query(Messages).filter(Messages.conversation_id == conversation_id).order_by(Messages.created_at.asc()).limit(20).all()
+        messages = db.query(Messages).filter(Messages.conversation_id == conversation_id).order_by(Messages.created_at.desc()).limit(30).all()
+        messages.reverse()
         return [message for message in messages]
