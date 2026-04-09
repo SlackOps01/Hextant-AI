@@ -6,6 +6,8 @@ from sqlalchemy import String, ForeignKey, DateTime, Enum
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
+from app.domains.attachments.models import message_attachments
+
 
 if TYPE_CHECKING:
     from app.domains.conversations.models import Conversations
@@ -53,12 +55,7 @@ class Messages(Base):
         default=MessageType.TEXT,
     )
     message_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    file_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    file_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    file_size_bytes: Mapped[int | None] = mapped_column(
-        String, nullable=True, default=0
-    )
-
+    
     tools: Mapped[list[str] | None] = mapped_column(
         ARRAY(String), nullable=True, default=[]
     )
@@ -83,8 +80,9 @@ class Messages(Base):
     language_model: Mapped["LanguageModels"] = relationship(
         "LanguageModels", back_populates="messages"
     )
-
+    attachments: Mapped[list['Attachments']] = relationship(secondary=message_attachments, back_populates="messages")
 
 from app.domains.memories.models import Memories
 from app.domains.artifacts.models import Artifact
 from app.domains.llm_models.models import LanguageModels
+from app.domains.attachments.models import Attachments

@@ -16,6 +16,13 @@ from app.domains.conversations.models import Conversations
 def mock_db_session():
     return MagicMock(spec=Session)
 
+@pytest.fixture
+def mock_redis():
+    from unittest.mock import AsyncMock
+    mock = AsyncMock()
+    mock.get.return_value = None
+    return mock
+
 
 @pytest.fixture
 def fake_conversation():
@@ -29,9 +36,8 @@ def fake_conversation():
     )
 
 
-
-def test_create_conversation(mock_db_session, mocker: MockerFixture):
-    fake_conversation_create = ConversationCreate(title="Fake convo")
+@pytest.mark.asyncio
+async def test_create_conversation(mock_db_session, mock_redis, mocker: MockerFixture):
 
     def fake_db_refresh(instance):
         instance.id = "conv123"
@@ -41,33 +47,35 @@ def test_create_conversation(mock_db_session, mocker: MockerFixture):
 
     mock_db_session.refresh.side_effect = fake_db_refresh
 
-    result = ConversationService.create_conversation(
-        mock_db_session, "user-123"
+    result = await ConversationService.create_conversation(
+        mock_db_session, "user-123", mock_redis
     )
 
     assert result.user_id == "user-123"
 
 
-def test_list_conversations(mock_db_session, fake_conversation):
+@pytest.mark.asyncio
+async def test_list_conversations(mock_db_session, mock_redis, fake_conversation):
     mock_db_session.query.return_value.filter.return_value.all.return_value = [
         fake_conversation
     ]
 
-    result = ConversationService.list_conversations(mock_db_session, "user-123")
+    result = await ConversationService.list_conversations(mock_db_session, "user-123", mock_redis)
 
     assert len(result) == 1
     mock_db_session.query.assert_called_once()
 
 
-def test_update_conversation_success(mock_db_session, fake_conversation):
+@pytest.mark.asyncio
+async def test_update_conversation_success(mock_db_session, mock_redis, fake_conversation):
     update_data = ConversationUpdate(title="Updated Title")
 
     mock_db_session.query.return_value.filter.return_value.first.return_value = (
         fake_conversation
     )
 
-    result = ConversationService.update_conversation(
-        mock_db_session, update_data, "user-123", "conv-123"
+    result = await ConversationService.update_conversation(
+        mock_db_session, update_data, "user-123", "conv-123", mock_redis
     )
 
     assert result.title == "Updated Title"
@@ -75,37 +83,40 @@ def test_update_conversation_success(mock_db_session, fake_conversation):
     mock_db_session.refresh.assert_called_once()
 
 
-def test_update_conversation_not_found(mock_db_session):
+@pytest.mark.asyncio
+async def test_update_conversation_not_found(mock_db_session, mock_redis):
     update_data = ConversationUpdate(title="Updated Title")
 
     mock_db_session.query.return_value.filter.return_value.first.return_value = None
 
     with pytest.raises(HTTPException) as exc_info:
-        ConversationService.update_conversation(
-            mock_db_session, update_data, "user-123", "nonexistent"
+        await ConversationService.update_conversation(
+            mock_db_session, update_data, "user-123", "nonexistent", mock_redis
         )
 
     assert exc_info.value.status_code == 404
     assert exc_info.value.detail == "Conversation not found"
 
 
-def test_delete_conversation_success(mock_db_session, fake_conversation):
+@pytest.mark.asyncio
+async def test_delete_conversation_success(mock_db_session, mock_redis, fake_conversation):
     mock_db_session.query.return_value.filter.return_value.first.return_value = (
         fake_conversation
     )
 
-    ConversationService.delete_conversation(mock_db_session, "user-123", "conv-123")
+    await ConversationService.delete_conversation(mock_db_session, "user-123", "conv-123", mock_redis)
 
     mock_db_session.delete.assert_called_once()
     mock_db_session.commit.assert_called_once()
 
 
-def test_delete_conversation_not_found(mock_db_session):
+@pytest.mark.asyncio
+async def test_delete_conversation_not_found(mock_db_session, mock_redis):
     mock_db_session.query.return_value.filter.return_value.first.return_value = None
 
     with pytest.raises(HTTPException) as exc_info:
-        ConversationService.delete_conversation(
-            mock_db_session, "user-123", "nonexistent"
+        await ConversationService.delete_conversation(
+            mock_db_session, "user-123", "nonexistent", mock_redis
         )
 
     assert exc_info.value.status_code == 404

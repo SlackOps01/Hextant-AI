@@ -23,13 +23,13 @@ from sqlalchemy import or_
 from fastapi.concurrency import run_in_threadpool  # For blocking async code
 
 
-InvalidCredentialException = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
-)
+class InvalidCredentialException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-RevokedSessionException = HTTPException(
-    detail="Session has been revoked", status_code=status.HTTP_401_UNAUTHORIZED
-)
+class RevokedSessionException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session has been revoked")
 
 
 def set_refresh_cookie(response: Response, refresh_token: str):
@@ -67,13 +67,13 @@ class AuthService:
             logger.warning(
                 f"Login failed: User with email '{form_data.username}' not found."
             )
-            raise InvalidCredentialException
+            raise InvalidCredentialException()
 
         if not verify_password(form_data.password, user.password):
             logger.warning(
                 f"Login failed: Password verification failed for '{form_data.username}'."
             )
-            raise InvalidCredentialException
+            raise InvalidCredentialException()
 
         refresh_token_jti = str(uuid7())
 
@@ -108,7 +108,7 @@ class AuthService:
     async def logout(request: Request, response: Response, db: Session, redis: Redis):
         refresh_token = request.cookies.get("refresh_token")
         if not refresh_token:
-            raise InvalidCredentialException
+            raise InvalidCredentialException()
 
         token_data = verify_token(
             refresh_token, InvalidCredentialException, TokenTypes.REFRESH
@@ -119,12 +119,12 @@ class AuthService:
             .first()
         )
         if not auth_session:
-            raise InvalidCredentialException
+            raise InvalidCredentialException()
         auth_session.is_revoked = True
         await run_in_threadpool(lambda: db.commit())
 
         if await is_token_revoked(redis, token_data.jti):
-            raise RevokedSessionException
+            raise RevokedSessionException()
 
         await revoke_tokens(redis, token_data.jti, token_data.exp)
         response.delete_cookie(
@@ -141,7 +141,7 @@ class AuthService:
     async def refresh(request: Request, response: Response, db: Session, redis: Redis):
         token = request.cookies.get("refresh_token")
         if not token:
-            raise InvalidCredentialException
+            raise InvalidCredentialException()
 
         token_data = verify_token(token, InvalidCredentialException, TokenTypes.REFRESH)
 
@@ -151,10 +151,10 @@ class AuthService:
             .first()
         )
         if not auth_session or auth_session.is_revoked:
-            raise InvalidCredentialException
+            raise InvalidCredentialException()
 
         if await is_token_revoked(redis, token_data.jti):
-            raise RevokedSessionException
+            raise RevokedSessionException()
 
         await revoke_tokens(redis, token_data.jti, token_data.exp)
 

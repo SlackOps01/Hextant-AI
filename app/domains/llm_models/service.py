@@ -5,12 +5,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 
-LanguageModelConflictException = HTTPException(
-    status_code=status.HTTP_409_CONFLICT,
-    detail="Language model with this api_identifier already exists",
-)
+class LanguageModelConflictException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=status.HTTP_409_CONFLICT, detail="Language model with this api_identifier already exists")
 
-LanguageModelNotFoundException = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Language model not found")
+class LanguageModelNotFoundException(HTTPException):
+    def __init__(self, model_id: str):
+        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail=f"Language model with id {model_id} not found")
 
 class LanguageModelService:
     @staticmethod
@@ -24,7 +25,7 @@ class LanguageModelService:
             db.refresh(db_language_model)
         except IntegrityError:
             db.rollback()
-            raise LanguageModelConflictException
+            raise LanguageModelConflictException()
         return LanguageModelResponse.model_validate(db_language_model)
     
     @staticmethod
@@ -37,7 +38,7 @@ class LanguageModelService:
     def update_language_model(db: Session, model_id: str, language_model: LanguageModelUpdate) -> LanguageModelResponse:
         language_model_db = db.query(LanguageModels).filter(LanguageModels.id == model_id).first()
         if not language_model_db:
-            raise LanguageModelNotFoundException
+            raise LanguageModelNotFoundException(model_id)
 
         update_data = language_model.model_dump(exclude_unset=True)
 
@@ -51,7 +52,7 @@ class LanguageModelService:
     def delete_language_model(db: Session, model_id: str) -> None:
         language_model_db = db.query(LanguageModels).filter(LanguageModels.id == model_id).first()
         if not language_model_db:
-            raise LanguageModelNotFoundException
+            raise LanguageModelNotFoundException(model_id)
         db.delete(language_model_db)
         db.commit()
         return 

@@ -9,10 +9,10 @@ This document outlines the development roadmap for Hextant-AI backend, including
 | Milestone | Name | Status | Priority |
 |-----------|------|--------|----------|
 | M0 | Foundation | COMPLETE | - |
-| M1 | Core Chat | PLANNED | High |
+| M1 | Core Chat | COMPLETE | High |
 | M2 | Memory System | PLANNED | High |
 | M3 | Artifact Generation | PLANNED | Medium |
-| M4 | Billing & Quotas | PLANNED | Medium |
+| M4 | Billing & Quotas | IN PROGRESS | Medium |
 | M5 | Admin & Polish | PLANNED | Low |
 
 ---
@@ -42,7 +42,7 @@ Core infrastructure and authentication system.
 
 ## M1: Core Chat
 
-**Status:** PLANNED
+**Status:** COMPLETE
 **Priority:** High
 
 Enable basic conversation functionality with LLM integration.
@@ -51,53 +51,109 @@ Enable basic conversation functionality with LLM integration.
 
 #### Routes (`routes.py`)
 
-- [ ] `GET /conversations` - List user's conversations (paginated)
-- [ ] `POST /conversations` - Create new conversation
-- [ ] `GET /conversations/{id}` - Get conversation details
-- [ ] `PATCH /conversations/{id}` - Update conversation (title)
-- [ ] `DELETE /conversations/{id}` - Delete conversation
+- [x] `GET /conversations` - List user's conversations
+- [x] `POST /conversations` - Create new conversation
+- [x] `DELETE /conversations/{id}` - Delete conversation
 
 #### Service (`service.py`)
 
-- [ ] `ConversationService.create()` - Create with auto-title
-- [ ] `ConversationService.get_by_user()` - User-scoped queries
-- [ ] `ConversationService.update()` - Title updates
-- [ ] `ConversationService.delete()` - Cascade delete messages
+- [x] `ConversationService.create()` - Create conversation
+- [x] `ConversationService.list_conversations()` - User-scoped queries
+- [x] `ConversationService.delete()` - Delete conversation
 
 #### Schemas (`schemas.py`)
 
-- [ ] `ConversationCreate` - Request schema
-- [ ] `ConversationUpdate` - Request schema
-- [ ] `ConversationResponse` - Response schema
-- [ ] `ConversationList` - Paginated response
+- [x] `ConversationResponse` - Response schema
+- [x] `ConversationCreate` - Request schema
+
+#### Tests
+
+- [x] Conversation service tests
+- [x] Conversation route tests
 
 ### Messages Domain
 
 #### Routes (`routes.py`)
 
-- [ ] `GET /conversations/{id}/messages` - List messages (paginated)
-- [ ] `POST /conversations/{id}/messages` - Create message
-- [ ] `GET /messages/{id}` - Get single message
+- [x] `GET /messages/{conversation_id}` - List messages
+- [x] `POST /messages/{conversation_id}` - Create message
 
 #### Service (`service.py`)
 
-- [ ] `MessageService.create()` - Create and process
-- [ ] `MessageService.get_conversation_messages()` - Ordered list
-- [ ] `MessageService.stream_response()` - Stream LLM response
+- [x] `MessageService.generate_response()` - Create message with LLM response
+- [x] `MessageService.list_messages()` - Ordered list
 
 #### Schemas (`schemas.py`)
 
-- [ ] `MessageCreate` - Request schema
-- [ ] `MessageResponse` - Response schema
-- [ ] `MessageList` - Paginated response
+- [x] `MessageCreate` - Request schema
+- [x] `MessageResponse` - Response schema
 
 ### LLM Integration
 
-- [ ] OpenRouter client wrapper
-- [ ] Model selection by tier/quota
-- [ ] Streaming response support
-- [ ] Token counting for quotas
-- [ ] Error handling and retries
+- [x] OpenRouter client wrapper (pydantic-ai)
+- [x] Model selection by model_id
+- [x] Message history context (last 30 messages)
+- [x] Multimodal support (images, audio, video, documents)
+- [x] Tavily search tool integration
+- [x] Error handling
+
+### Language Models Domain
+
+#### Routes (`routes.py`)
+
+- [x] `POST /llm-models/` - Add language model (admin)
+- [x] `GET /llm-models/` - List all models
+- [x] `PATCH /llm-models/{id}` - Update model (admin)
+- [x] `DELETE /llm-models/{id}` - Delete model (admin)
+
+#### Service (`service.py`)
+
+- [x] `LanguageModelService.add_language_model()` - Create model
+- [x] `LanguageModelService.list_language_models()` - List models
+- [x] `LanguageModelService.update_language_model()` - Update model
+- [x] `LanguageModelService.delete_language_model()` - Delete model
+
+#### Tests
+
+- [x] LLM model service tests
+- [x] LLM model route tests
+
+### Attachments Domain
+
+#### Routes (`routes.py`)
+
+- [x] `POST /attachments/` - Upload file
+- [x] `GET /attachments/` - List user's attachments
+- [x] `GET /attachments/{id}/download` - Get presigned download URL
+
+#### Service (`service.py`)
+
+- [x] `AttachmentService.upload_file()` - Upload to S3
+- [x] `AttachmentService.generate_download_url()` - Generate URL
+- [x] `AttachmentService.list_attachments()` - User-scoped listing
+
+### Tiers Domain
+
+#### Routes (`routes.py`)
+
+- [x] `POST /tiers/` - Create tier (admin)
+- [x] `GET /tiers/` - List all tiers
+- [x] `GET /tiers/{id}` - Get tier by ID
+- [x] `PATCH /tiers/{id}` - Update tier (admin)
+- [x] `DELETE /tiers/{id}` - Delete tier (admin)
+
+#### Service (`service.py`)
+
+- [x] `TierService.create_tier()` - Create tier
+- [x] `TierService.list_tiers()` - List active tiers
+- [x] `TierService.get_tier_by_id()` - Get tier details
+- [x] `TierService.update_tier()` - Update tier
+- [x] `TierService.delete_tier()` - Delete tier
+
+#### Tests
+
+- [x] Tier service tests
+- [x] Tier route tests
 
 ---
 
@@ -174,12 +230,18 @@ AI-generated content storage and retrieval system.
 
 ## M4: Billing & Quotas
 
-**Status:** PLANNED
+**Status:** IN PROGRESS
 **Priority:** Medium
 
 Complete subscription and usage management system.
 
 ### Tiers Domain
+
+**Status:** COMPLETE
+
+See M1 for completed tier implementation.
+
+### Subscriptions Domain
 
 #### Routes (`routes.py`)
 
@@ -301,7 +363,19 @@ Administrative endpoints, validation, logging, and testing.
 
 ### Testing
 
-- [ ] Unit tests (pytest)
+- [x] Unit tests setup (pytest, pytest-mock, pytest-asyncio)
+- [x] Auth service tests
+- [x] Auth route tests
+- [x] User service tests
+- [x] User route tests
+- [x] Conversation service tests
+- [x] Conversation route tests
+- [x] LLM model service tests
+- [x] LLM model route tests
+- [x] Tier service tests
+- [x] Tier route tests
+- [ ] Messages tests
+- [ ] Attachments tests
 - [ ] Integration tests
 - [ ] API tests (TestClient)
 - [ ] Coverage reporting
@@ -341,4 +415,5 @@ See individual milestone tasks for contribution opportunities. Each task can be 
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | TBD | Initial release with M0+M1 |
+| 0.1.0 | TBD | M0 Foundation complete, M1 partially complete (conversations CRUD) |
+| 0.2.0 | TBD | M1 Core Chat complete - messages, LLM integration, attachments, tiers |

@@ -8,9 +8,10 @@ redis
 sqlalchemy
 boto3
 psycopg2
-boto3-stubs
+boto3-stubs[full]
 passlib[bcrypt]
 user_agents
 pytest
 pytest-mock
 pytest-asyncio
+pydantic-ai-slim[tavily]

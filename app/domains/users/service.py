@@ -8,14 +8,13 @@ from app.domains.users.models import User
 from app.utils.password import hash_password
 
 
-UserNotFoundException = HTTPException(
-    status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-)
+class UserNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-UserActionForbiddenException = HTTPException(
-    status_code=status.HTTP_403_FORBIDDEN, detail="Action forbidden!"
-)
-
+class UserForbiddenException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=status.HTTP_403_FORBIDDEN, detail="Action forbidden!")
 
 def get_user_conflict_exception(field: str, value: str) -> HTTPException:
     return HTTPException(
@@ -29,21 +28,21 @@ class UserService:
     def get_user_by_id(db: Session, user_id: str):
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            raise UserNotFoundException
+            raise UserNotFoundException()
         return user
 
     @staticmethod
     def get_user_by_email(db: Session, email: str):
         user = db.query(User).filter(User.email == email).first()
         if not user:
-            raise UserNotFoundException
+            raise UserNotFoundException()
         return user
 
     @staticmethod
     def get_user_by_username(db: Session, username: str):
         user = db.query(User).filter(User.username == username).first()
         if not user:
-            raise UserNotFoundException
+            raise UserNotFoundException()
         return user
 
     @staticmethod
@@ -56,7 +55,7 @@ class UserService:
         # No auth logic here anymore!
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            raise UserNotFoundException
+            raise UserNotFoundException()
         db.delete(user)
         db.commit()
         return None
@@ -85,7 +84,7 @@ class UserService:
         # No auth logic here anymore!
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            raise UserNotFoundException
+            raise UserNotFoundException()
 
         update_dict = user_data.model_dump(exclude_unset=True, mode="json")
 

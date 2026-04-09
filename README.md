@@ -18,20 +18,39 @@ Hextant-AI is a domain-driven backend service designed to support an AI chat/con
   - Rate limiting on sensitive endpoints
 
 - **User Management** - User model with role-based access (admin/user)
+  - Registration, list, get by ID/email/username, delete
 
 - **Conversations** - Chat conversation management
-  - Create, list, update, and delete conversations
+  - Create, list, and delete conversations
   - User-scoped conversation queries
-  - Auto-title support
+  - Protected routes with authentication
 
-### In Progress (Models Defined)
+- **Messages** - AI-powered messaging with LLM integration
+  - Create and list messages per conversation
+  - OpenRouter API integration via pydantic-ai
+  - Multimodal support (text, images, audio, video, documents)
+  - Tavily search tool integration
+  - Message history context window (last 30 messages)
 
-- **Messages** - Message storage with support for text, image, and research types
+- **LLM Models** - Language model configuration (admin)
+  - Add, list, update, delete language models
+  - Model API identifier and metadata management
+
+- **Tiers** - Subscription tier management
+  - Create, list, get, update, delete tiers
+  - Admin-protected write operations
+
+- **Attachments** - File upload and storage
+  - Upload files to S3
+  - Presigned URL generation for downloads
+  - User-scoped attachment listing
+
+### Models Defined (Routes Pending)
+
 - **Memories** - Long-term memory extraction from conversations
 - **Artifacts** - AI-generated files (images, code, documents)
-- **LLM Models** - Language model configuration and pricing
 - **Billing** - Complete subscription infrastructure:
-  - Tiers - Subscription tiers with usage limits
+  - Subscriptions - User subscription management
   - Orders - Payment processing
   - Coupons - Discount codes
   - Quotas - Usage tracking and limits
@@ -48,42 +67,6 @@ Hextant-AI is a domain-driven backend service designed to support an AI chat/con
 | LLM Integration | OpenRouter API (pydantic-ai)|
 | Rate Limiting | SlowAPI |
 | Cloud Storage | AWS S3 (boto3) |
-
-## Project Structure
-
-```
-app/
-├── core/                  # Core infrastructure
-│   ├── config.py          # Settings management (Pydantic)
-│   ├── database.py        # SQLAlchemy setup
-│   ├── deps.py            # Dependency injection
-│   ├── limiter.py         # Rate limiting setup
-│   ├── logging.py         # Logging configuration
-│   ├── oauth2.py          # JWT token handling
-│   └── tokens.py          # Token revocation (Redis)
-│
-├── domains/               # Business domains (DDD)
-│   ├── auth/              # Authentication (COMPLETE)
-│   ├── users/             # User management
-│   ├── conversations/     # Chat conversations
-│   ├── messages/          # Messages in conversations
-│   ├── memories/          # Extracted memories
-│   ├── artifacts/         # AI-generated files
-│   ├── llm_models/        # LLM configuration
-│   ├── subscriptions/     # User subscriptions
-│   ├── tiers/             # Subscription tiers
-│   ├── orders/            # Payment orders
-│   ├── coupons/           # Discount codes
-│   └── quotas/            # Usage quotas
-│
-├── shared/                # Shared utilities
-│   ├── enums.py           # Common enumerations
-│   └── schemas.py         # Shared Pydantic schemas
-│
-└── utils/                 # Helper functions
-    ├── create_admin.py    # Admin user creation
-    └── password.py        # Password hashing
-```
 
 ## Prerequisites
 
@@ -130,6 +113,52 @@ uv run uvicorn app.main:app --reload
 
 # Run production server
 uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+# Run tests
+uv run pytest
+
+# Run tests with coverage
+uv run pytest --cov=app
+```
+
+## Project Structure
+
+```
+app/
+├── core/                  # Core infrastructure
+│   ├── config.py          # Settings management (Pydantic)
+│   ├── database.py        # SQLAlchemy setup
+│   ├── deps.py            # Dependency injection
+│   ├── limiter.py         # Rate limiting setup
+│   ├── logging.py         # Logging configuration
+│   ├── oauth2.py          # JWT token handling
+│   └── tokens.py          # Token revocation (Redis)
+│
+├── domains/               # Business domains (DDD)
+│   ├── auth/              # Authentication (COMPLETE)
+│   ├── users/             # User management
+│   ├── conversations/     # Chat conversations
+│   ├── messages/          # Messages in conversations
+│   ├── memories/          # Extracted memories
+│   ├── artifacts/         # AI-generated files
+│   ├── attachments/       # File attachments
+│   ├── llm_models/        # LLM configuration
+│   ├── subscriptions/     # User subscriptions
+│   ├── tiers/             # Subscription tiers
+│   ├── orders/            # Payment orders
+│   ├── coupons/           # Discount codes
+│   └── quotas/            # Usage quotas
+│
+├── shared/                # Shared utilities
+│   ├── enums.py           # Common enumerations
+│   └── schemas.py         # Shared Pydantic schemas
+│
+├── utils/                 # Helper functions
+│   ├── create_admin.py    # Admin user creation
+│   └── password.py        # Password hashing
+│
+└── tests/
+    └── unit/              # Unit tests by domain
 ```
 
 ## API Reference
@@ -144,21 +173,56 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 ### Users
 
-| Method | Endpoint | Description | Rate Limit |
-|--------|----------|-------------|------------|
-| GET | `/users/` | List users | TBD |
-| GET | `/users/{id}` | Get user by ID | TBD |
-| POST | `/users/` | Create user | TBD |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/users/register` | Register new user | None |
+| GET | `/users/` | List users | Admin |
+| GET | `/users/{id}` | Get user by ID | Owner/Admin |
+| GET | `/users/email/{email}` | Get user by email | Admin |
+| GET | `/users/username/{username}` | Get user by username | Admin |
+| DELETE | `/users/{id}` | Delete user | Owner/Admin |
 
 ### Conversations
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/conversations/` | Create new conversation | Yes |
-| GET | `/conversations/` | List user's conversations | Yes |
-| GET | `/conversations/{id}` | Get conversation details | Yes |
-| PATCH | `/conversations/{id}` | Update conversation title | Yes |
-| DELETE | `/conversations/{id}` | Delete conversation | Yes |
+| Method | Endpoint | Description | Rate Limit |
+|--------|----------|-------------|------------|
+| POST | `/conversations/` | Create new conversation | 20/min |
+| GET | `/conversations/` | List user's conversations | 60/min |
+| DELETE | `/conversations/{id}` | Delete conversation | 5/hour |
+
+### Messages
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/messages/{conversation_id}` | Create message with LLM response |
+| GET | `/messages/{conversation_id}` | List conversation messages |
+
+### LLM Models (Admin)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/llm-models/` | Add language model |
+| GET | `/llm-models/` | List all models |
+| PATCH | `/llm-models/{id}` | Update model |
+| DELETE | `/llm-models/{id}` | Delete model |
+
+### Tiers
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/tiers/` | Create tier | Admin |
+| GET | `/tiers/` | List all tiers | None |
+| GET | `/tiers/{id}` | Get tier details | None |
+| PATCH | `/tiers/{id}` | Update tier | Admin |
+| DELETE | `/tiers/{id}` | Delete tier | Admin |
+
+### Attachments
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/attachments/` | Upload file |
+| GET | `/attachments/` | List user's attachments |
+| GET | `/attachments/{id}/download` | Get download URL |
 
 ## Domain Models
 
@@ -169,6 +233,7 @@ User
 ├── auth_sessions[]      # Login sessions
 ├── conversations[]      # Chat conversations
 ├── artifacts[]          # AI-generated files
+├── attachments[]        # File attachments
 ├── subscriptions[]      # Subscription history
 ├── orders[]             # Payment history
 └── quotas[]             # Usage quotas

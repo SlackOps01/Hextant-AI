@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from fastapi import FastAPI
 
 from app.domains.conversations.routes import router
-from app.core.deps import get_db, get_current_user
+from app.core.deps import get_db, get_current_user, get_redis
 from app.core.oauth2 import TokenData
 
 app = FastAPI()
@@ -22,9 +22,13 @@ def override_get_db():
 def override_get_current_user():
     return TokenData(id="user-123", role="user", jti="jti-123", exp=9999999999)
 
+def override_get_redis():
+    from unittest.mock import AsyncMock
+    return AsyncMock()
 
 app.dependency_overrides[get_db] = override_get_db
 app.dependency_overrides[get_current_user] = override_get_current_user
+app.dependency_overrides[get_redis] = override_get_redis
 
 
 def test_create_conversation_route(mocker: MockerFixture):
@@ -75,6 +79,7 @@ def test_delete_conversation_route(mocker: MockerFixture):
     mock_delete = mocker.patch(
         "app.domains.conversations.routes.ConversationService.delete_conversation"
     )
+    mock_delete.return_value = {"status": "deleted"}
 
     response = client.delete("/conversations/conv-123")
 
