@@ -7,6 +7,8 @@ from contextlib import asynccontextmanager
 from redis.asyncio import Redis
 from httpx import AsyncClient
 from fastapi.middleware.cors import CORSMiddleware
+import time
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.utils.create_admin import create_admin_user
 from app.core.limiter import limiter
@@ -64,7 +66,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+class ProcessTimeMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.perf_counter()
+        
+        response = await call_next(request)
+        
+        process_time = time.perf_counter() - start_time
+        
+        # Attach to headers for the client
+        response.headers["X-Process-Time"] = f"{process_time:.4f}"
+        
+        # Log it for your own telemetry
+        logger.info(f"Path: {request.url.path} | Time: {process_time:.4f}s")
+        
+        return response
 
+app.add_middleware(ProcessTimeMiddleware)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, custom_rate_limit_exceeded_handler)
 

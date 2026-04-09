@@ -20,6 +20,8 @@ from app.domains.attachments.service import AttachmentService, AttachmentNotFoun
 from app.domains.attachments.models import Attachments
 from fastapi.concurrency import run_in_threadpool
 from pydantic_ai.common_tools.tavily import tavily_search_tool
+from app.core.prompts import system_prompt
+
 
 class LanguageModelNotFound(HTTPException):
     def __init__(self, model_id: str):
@@ -122,7 +124,8 @@ class MessageService:
         try:
             agent = Agent(
                 model=model,
-                system_prompt="You are a helpful assistant.",
+                system_prompt=system_prompt,
+                instructions=system_prompt,
                 tools=[tavily_search_tool(api_key=CONFIG.TAVILY_API_KEY)]
             )
             

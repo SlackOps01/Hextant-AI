@@ -18,21 +18,38 @@ Hextant-AI is a domain-driven backend service designed to support an AI chat/con
   - Rate limiting on sensitive endpoints
 
 - **User Management** - User model with role-based access (admin/user)
+  - Registration, list, get by ID/email/username, delete
 
 - **Conversations** - Chat conversation management
   - Create, list, and delete conversations
   - User-scoped conversation queries
   - Protected routes with authentication
 
+- **Messages** - AI-powered messaging with LLM integration
+  - Create and list messages per conversation
+  - OpenRouter API integration via pydantic-ai
+  - Multimodal support (text, images, audio, video, documents)
+  - Tavily search tool integration
+  - Message history context window (last 30 messages)
+
+- **LLM Models** - Language model configuration (admin)
+  - Add, list, update, delete language models
+  - Model API identifier and metadata management
+
+- **Tiers** - Subscription tier management
+  - Create, list, get, update, delete tiers
+  - Admin-protected write operations
+
+- **Attachments** - File upload and storage
+  - Upload files to S3
+  - Presigned URL generation for downloads
+  - User-scoped attachment listing
+
 ### Models Defined (Routes Pending)
 
-- **Messages** - Message storage with support for text, image, and research types
 - **Memories** - Long-term memory extraction from conversations
 - **Artifacts** - AI-generated files (images, code, documents)
-- **LLM Models** - Language model configuration and pricing
-- **Attachments** - File attachment handling with S3 integration
 - **Billing** - Complete subscription infrastructure:
-  - Tiers - Subscription tiers with usage limits
   - Subscriptions - User subscription management
   - Orders - Payment processing
   - Coupons - Discount codes
@@ -156,21 +173,56 @@ app/
 
 ### Users
 
-| Method | Endpoint | Description | Rate Limit |
-|--------|----------|-------------|------------|
-| GET | `/users/` | List users | TBD |
-| GET | `/users/{id}` | Get user by ID | TBD |
-| POST | `/users/` | Create user | TBD |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/users/register` | Register new user | None |
+| GET | `/users/` | List users | Admin |
+| GET | `/users/{id}` | Get user by ID | Owner/Admin |
+| GET | `/users/email/{email}` | Get user by email | Admin |
+| GET | `/users/username/{username}` | Get user by username | Admin |
+| DELETE | `/users/{id}` | Delete user | Owner/Admin |
 
 ### Conversations
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/conversations/` | Create new conversation | Yes |
-| GET | `/conversations/` | List user's conversations | Yes |
-| GET | `/conversations/{id}` | Get conversation details | Yes |
-| PATCH | `/conversations/{id}` | Update conversation title | Yes |
-| DELETE | `/conversations/{id}` | Delete conversation | Yes |
+| Method | Endpoint | Description | Rate Limit |
+|--------|----------|-------------|------------|
+| POST | `/conversations/` | Create new conversation | 20/min |
+| GET | `/conversations/` | List user's conversations | 60/min |
+| DELETE | `/conversations/{id}` | Delete conversation | 5/hour |
+
+### Messages
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/messages/{conversation_id}` | Create message with LLM response |
+| GET | `/messages/{conversation_id}` | List conversation messages |
+
+### LLM Models (Admin)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/llm-models/` | Add language model |
+| GET | `/llm-models/` | List all models |
+| PATCH | `/llm-models/{id}` | Update model |
+| DELETE | `/llm-models/{id}` | Delete model |
+
+### Tiers
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/tiers/` | Create tier | Admin |
+| GET | `/tiers/` | List all tiers | None |
+| GET | `/tiers/{id}` | Get tier details | None |
+| PATCH | `/tiers/{id}` | Update tier | Admin |
+| DELETE | `/tiers/{id}` | Delete tier | Admin |
+
+### Attachments
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/attachments/` | Upload file |
+| GET | `/attachments/` | List user's attachments |
+| GET | `/attachments/{id}/download` | Get download URL |
 
 ## Domain Models
 
