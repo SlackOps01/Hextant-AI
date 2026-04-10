@@ -31,7 +31,6 @@ class Subscriptions(Base):
     order_id: Mapped[str] = mapped_column(
         ForeignKey("orders.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    subscription_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     tier_id: Mapped[str] = mapped_column(
         ForeignKey("tiers.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -49,7 +48,7 @@ class Subscriptions(Base):
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
     )
     current_period_end: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     user: Mapped["User"] = relationship("User", back_populates="subscriptions")
     order: Mapped["Orders"] = relationship("Orders", back_populates="subscriptions")

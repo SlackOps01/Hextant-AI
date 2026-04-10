@@ -26,6 +26,7 @@ class Tiers(Base):
     model_access: Mapped[list[str]] = mapped_column(
         ARRAY(String), nullable=False, default=[]
     )
+    paystack_plan_code: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, index=True
     )

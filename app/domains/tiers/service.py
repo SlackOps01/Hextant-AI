@@ -1,9 +1,11 @@
+from app.core.logging import logger
+from app.core import logging
 from fastapi import HTTPException, status
 from app.domains.tiers.models import Tiers
 from app.domains.tiers.schemas import TierCreate, TierResponse, TierUpdate
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-
+from app.shared.paystack_service import PaystackService
 
 TierConflictException = HTTPException(
     status_code=status.HTTP_409_CONFLICT,
@@ -17,9 +19,12 @@ TierNotFoundException = HTTPException(
 
 
 class TierService:
-    @staticmethod
-    def create_tier(db: Session, tier_data: TierCreate) -> TierResponse:
+    async def create_tier(db: Session, tier_data: TierCreate) -> TierResponse:
+        paystack_service = PaystackService()
+        plan_code = await paystack_service.create_plan(tier_data.name, tier_data.price, "monthly")
+        logger.info(plan_code)
         tier = Tiers(**tier_data.model_dump(mode="json"))
+        tier.paystack_plan_code = plan_code
         db.add(tier)
         try:
             db.commit()

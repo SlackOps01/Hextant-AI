@@ -1,3 +1,4 @@
+from app.core.oauth2 import TokenData
 from app.domains.users.schemas import UserCreate
 from app.core.deps import get_db
 from sqlalchemy.orm import Session
@@ -7,6 +8,8 @@ from app.domains.users.schemas import UserResponse
 from app.core.limiter import limiter
 from app.core.logging import logger
 from app.domains.users.security import require_admin, require_owner_or_admin
+from app.core.deps import get_current_user
+
 
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -19,6 +22,10 @@ router = APIRouter(prefix="/users", tags=["users"])
 def register(request: Request, user_data: UserCreate, db: Session = Depends(get_db)):
     logger.info(f"Attempting to register new user: {user_data.email}")
     return UserService.create_user(db, user_data)
+
+@router.get("/me", response_model=UserResponse)
+def get_me(request: Request, db: Session = Depends(get_db), token_data: TokenData = Depends(get_current_user)):
+    return UserService.get_user_by_id(db, token_data.id)
 
 
 @router.get("/", response_model=list[UserResponse])
@@ -33,18 +40,16 @@ def list_users(
     logger.info("Attempting to list users")
     return UserService.list_users(db, skip, limit)
 
-
-@router.get("/{user_id}", response_model=UserResponse)
+@router.get("/username/{username}", response_model=UserResponse)
 @limiter.limit("60/minute")
-def get_user_by_id(
+def get_user_by_username(
     request: Request,
-    user_id: str,
+    username: str,
     db: Session = Depends(get_db),
     _=Depends(require_owner_or_admin),
 ):
-    logger.info(f"Attempting to get user by id: {user_id}")
-    return UserService.get_user_by_id(db, user_id)
-
+    logger.info(f"Attempting to get user by username: {username}")
+    return UserService.get_user_by_username(db, username)
 
 @router.get("/email/{email}", response_model=UserResponse)
 @limiter.limit("60/minute")
@@ -58,16 +63,20 @@ def get_user_by_email(
     return UserService.get_user_by_email(db, email)
 
 
-@router.get("/username/{username}", response_model=UserResponse)
+
+@router.get("/{user_id}", response_model=UserResponse)
 @limiter.limit("60/minute")
-def get_user_by_username(
+def get_user_by_id(
     request: Request,
-    username: str,
+    user_id: str,
     db: Session = Depends(get_db),
-    _=Depends(require_admin),
+    _=Depends(require_owner_or_admin),
 ):
-    logger.info(f"Attempting to get user by username: {username}")
-    return UserService.get_user_by_username(db, username)
+    logger.info(f"Attempting to get user by id: {user_id}")
+    return UserService.get_user_by_id(db, user_id)
+
+
+
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

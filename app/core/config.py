@@ -31,5 +31,7 @@ class Settings(BaseSettings):
     
     TAVILY_API_KEY: str
 
+    PAYSTACK_SECRET_KEY: str
+
 
 CONFIG = Settings()

@@ -9,10 +9,10 @@ router = APIRouter(prefix="/tiers", tags=["Tiers"])
 
 
 @router.post("/", response_model=TierResponse, status_code=status.HTTP_201_CREATED)
-def create_tier(
+async def create_tier(
     tier_data: TierCreate, db: Session = Depends(get_db), _=Depends(require_admin)
 ):
-    return TierService.create_tier(db, tier_data)
+    return await TierService.create_tier(db, tier_data)
 
 
 @router.get("/", response_model=list[TierResponse], status_code=status.HTTP_200_OK)

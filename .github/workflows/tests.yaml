@@ -50,11 +50,11 @@ jobs:
         
         echo "TAVILY_API_KEY=test" >> .env
 
-        
+        echo "PAYSTACK_SECRET_KEY=test" >> .env
         
 
     - name: Install dependencies
       run: uv pip install -r requirements.txt
 
     - name: Run tests
-      run: uv run pytest ./app/tests
+      run: uv run pytest ./app/tests    
