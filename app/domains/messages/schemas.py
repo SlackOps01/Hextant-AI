@@ -26,3 +26,13 @@ class MessageResponse(BaseModel):
     updated_at: datetime = Field(description="The update time of the message")
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class StreamDoneEvent(BaseModel):
+    """Payload for the SSE 'done' event after streaming completes."""
+    message_id: str = Field(description="The ID of the saved assistant message")
+    conversation_id: str = Field(description="The ID of the conversation")
+    content: str = Field(description="The full accumulated response content")
+    role: MessageRole = Field(default=MessageRole.ASSISTANT)
+    message_type: MessageType = Field(default=MessageType.TEXT)
+    tools_used: list[str] = Field(default_factory=list, description="Tools that were called during generation")
