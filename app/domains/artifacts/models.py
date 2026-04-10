@@ -34,7 +34,7 @@ class Artifact(Base):
         ForeignKey("messages.id", ondelete="CASCADE"), nullable=False, index=True
     )
     name: Mapped[str] = mapped_column(String, nullable=False)
-    url: Mapped[str] = mapped_column(String, nullable=False)
+    s3_key: Mapped[str] = mapped_column(String, nullable=False)
     type: Mapped[ArtifactType] = mapped_column(
         Enum(
             ArtifactType,

@@ -1,6 +1,6 @@
 from app.core.logging import logger
 from pydantic_ai.exceptions import ModelHTTPError
-from pydantic_ai import TextPart, ImageUrl, VideoUrl, AudioUrl, DocumentUrl
+from pydantic_ai import TextPart, ImageUrl, VideoUrl, AudioUrl, DocumentUrl, Tool
 from pydantic_ai import ModelRequest, ModelResponse
 from app.domains.messages.models import MessageRole
 from pydantic_ai import Agent
@@ -21,6 +21,7 @@ from app.domains.attachments.models import Attachments
 from fastapi.concurrency import run_in_threadpool
 from pydantic_ai.common_tools.tavily import tavily_search_tool
 from app.core.prompts import system_prompt
+from app.domains.messages.tools import AgentDeps, generate_image_tool
 
 
 class LanguageModelNotFound(HTTPException):
@@ -116,7 +117,12 @@ class MessageService:
             return new_msg
             
         new_message = await run_in_threadpool(save_user_message)
-        
+        deps = AgentDeps(
+            db=db,
+            user_id=current_user.id,
+            message_id=new_message.id,
+            image_model_id=data.image_model_id 
+        )
         model = OpenRouterModel(
             model_name=db_language_model.api_identifier,
             provider=OpenRouterProvider(api_key=CONFIG.OPENROUTER_API_KEY),
@@ -126,10 +132,13 @@ class MessageService:
                 model=model,
                 system_prompt=system_prompt,
                 instructions=system_prompt,
-                tools=[tavily_search_tool(api_key=CONFIG.TAVILY_API_KEY)]
+                tools=[
+                    tavily_search_tool(api_key=CONFIG.TAVILY_API_KEY),
+                    Tool(generate_image_tool)
+                ]
             )
             
-            result = await agent.run(message, message_history=message_history)
+            result = await agent.run(message, message_history=message_history, deps=deps)
             
             def save_agent_message(output):
                 new_agent_msg = Messages(
@@ -150,6 +159,7 @@ class MessageService:
         except ModelHTTPError as e:
             logger.error(f"Model HTTP Error: {str(e)}")
             raise ModelFeatureNotSupportedError(str(e))
+
 
 
     @staticmethod
