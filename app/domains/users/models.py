@@ -1,7 +1,7 @@
 from app.core.database import Base
 from uuid import uuid7
 from datetime import datetime, timezone
-from sqlalchemy import String, DateTime, Enum
+from sqlalchemy import String, DateTime, Enum, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.shared.enums import Role
 from typing import List
@@ -30,6 +30,7 @@ class User(Base):
         index=True,
     )
     profile_picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    is_oauth: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True
     )

@@ -43,3 +43,16 @@ async def refresh(
     db: Session = Depends(get_db),
 ):
     return await AuthService.refresh(request, response, db, redis)
+
+@router.get("/google/login")
+def google_login():
+    return AuthService.google_login()
+
+
+@router.get("/callback")
+async def google_callback(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+):
+    return await AuthService.google_callback(request, response, db)

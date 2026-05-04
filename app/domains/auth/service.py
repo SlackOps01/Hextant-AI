@@ -1,3 +1,7 @@
+from urllib.parse import urlencode
+from fastapi.responses import RedirectResponse
+import httpx
+import secrets
 from app.core.tokens import revoke_tokens, is_token_revoked
 
 from app.core.config import CONFIG
@@ -31,6 +35,9 @@ RevokedSessionException = HTTPException(
     detail="Session has been revoked", status_code=status.HTTP_401_UNAUTHORIZED
 )
 
+GOOGLE_AUTH_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token"
+GOOGLE_USERINFO_ENDPOINT = "https://www.googleapis.com/oauth2/v3/userinfo"
 
 def set_refresh_cookie(response: Response, refresh_token: str):
     response.set_cookie(
@@ -74,6 +81,12 @@ class AuthService:
                 f"Login failed: Password verification failed for '{form_data.username}'."
             )
             raise InvalidCredentialException
+        
+        if user.is_oauth:
+            raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This account uses Google login. Please sign in with Google."
+        )
 
         refresh_token_jti = str(uuid7())
 
@@ -169,6 +182,90 @@ class AuthService:
 
         auth_session.refresh_token_jti = refresh_token_jti
 
+        await run_in_threadpool(lambda: db.commit())
+
+        set_refresh_cookie(response, refresh_token)
+
+        return {"access_token": access_token, "token_type": "bearer"}
+
+    @staticmethod
+    def google_login():
+        query_params = {
+            "client_id": CONFIG.GOOGLE_CLIENT_ID,
+            "redirect_uri": CONFIG.GOOGLE_REDIRECT_URI,
+            "response_type": "code",
+            "scope": "openid email profile",
+            "access_type": "offline",
+            "prompt": "consent",
+        }
+        url = f"{GOOGLE_AUTH_ENDPOINT}?{urlencode(query_params)}"
+        return RedirectResponse(url)
+
+    @staticmethod
+    async def google_callback(request: Request, response: Response, db: Session):
+        code = request.query_params.get("code")
+        if not code:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Code not found")
+
+        async with httpx.AsyncClient() as client:
+            token_response = await client.post(GOOGLE_TOKEN_ENDPOINT, data={
+                "code": code,
+                "client_id": CONFIG.GOOGLE_CLIENT_ID,
+                "client_secret": CONFIG.GOOGLE_CLIENT_SECRET,
+                "redirect_uri": CONFIG.GOOGLE_REDIRECT_URI,
+                "grant_type": "authorization_code",
+            })
+            token_response.raise_for_status()
+            google_access_token = token_response.json().get("access_token")
+
+            if not google_access_token:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Access token not found")
+
+            userinfo_response = await client.get(
+                GOOGLE_USERINFO_ENDPOINT,
+                headers={"Authorization": f"Bearer {google_access_token}"}
+            )
+            userinfo_response.raise_for_status()
+            user_info = userinfo_response.json()
+
+        email = user_info.get("email")
+        if not email:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not found in Google response")
+
+        user = await run_in_threadpool(lambda: db.query(User).filter(User.email == email).first())
+        if not user:
+            user = User(
+                email=email,
+                username=user_info.get("name", email.split("@")[0]),
+                password=secrets.token_hex(32),
+                profile_picture_url=user_info.get("picture"),
+                is_oauth=True,
+            )
+            db.add(user)
+            await run_in_threadpool(lambda: db.commit())
+            await run_in_threadpool(lambda: db.refresh(user))
+
+        refresh_token_jti = str(uuid7())
+        token_request = TokenRequest(id=user.id, role=user.role)
+        access_token = create_access_token(token_request)
+        token_request.jti = refresh_token_jti
+        refresh_token = create_refresh_token(token_request)
+
+        user_agent_raw = request.headers.get("User-Agent", "Unknown")
+        os = user_agent_parser.ParseOS(user_agent_raw)
+        device_name = user_agent_parser.ParseDevice(user_agent_raw)
+
+        auth_session = AuthSessions(
+            user_id=user.id,
+            user_agent=user_agent_raw,
+            ip_address=request.client.host or "Unknown",
+            device_name=device_name.get("family", "unknown"),
+            device_os=os.get("family", "unknown"),
+            device_type="Unknown",
+            refresh_token_jti=refresh_token_jti,
+            session_expires_at=datetime.now(timezone.utc) + timedelta(days=7),
+        )
+        db.add(auth_session)
         await run_in_threadpool(lambda: db.commit())
 
         set_refresh_cookie(response, refresh_token)
